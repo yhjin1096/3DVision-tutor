@@ -1,4 +1,4 @@
-# VisualSLAM-tutor
+# 3DVision-tutor
 ## 1. Index
 ### 1.1. Calibration
 ...
