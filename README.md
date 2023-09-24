@@ -5,4 +5,7 @@
 ## 2. Prerequisites
 <!-- ROS-noetic, OpenCV, Eigen, Ceres -->
 ## 3. Dataset
-<!-- Kitti ->
+<!-- Kitti -->
+## Reference
+https://github.com/mint-lab/3dv_tutorial
+...
