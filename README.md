@@ -3,7 +3,7 @@
 ### 1.1. Calibration
 ...
 ## 2. Prerequisites
-<!-- ROS-noetic, OpenCV, Eigen, Ceres -->
+<!-- ROS-noetic, OpenCV, Eigen, Ceres, DBoW2,  -->
 ## 3. Dataset
 <!-- Kitti -->
 ## Reference
