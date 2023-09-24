@@ -1,6 +1,6 @@
 # VisualSLAM-tutor
 ## 1. Index
-### 1-1. Calibration
+### 1.1. Calibration
 ...
 ## 2. Prerequisites
 <!-- ROS-noetic, OpenCV, Eigen, Ceres -->
