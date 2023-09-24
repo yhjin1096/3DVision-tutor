@@ -1,8 +1,8 @@
 # VisualSLAM-tutor
-## Index
-### 1. Calibration
+## 1. Index
+### 1-1. Calibration
 ...
-## Prerequisites
+## 2. Prerequisites
 <!-- ROS-noetic, OpenCV, Eigen, Ceres -->
-## Dataset
+## 3. Dataset
 <!-- Kitti ->
