@@ -9,8 +9,7 @@
 ## Reference
 https://github.com/mint-lab/3dv_tutorial
 
-### Backend
-https://github.com/LimHyungTae/helloceres
-
-https://github.com/luigifreda/slamplay
+**Backend**
+* https://github.com/LimHyungTae/helloceres
+* https://github.com/luigifreda/slamplay
 ...
