@@ -119,6 +119,8 @@ class Calculator
 
             return result;
         };
+        
+        //https://github.com/luigifreda/slamplay
         static void Triangulation(const Camera& left_cam, const Camera& right_cam)
         {
             cv::Mat T1 = (cv::Mat_<float>(3, 4) << left_cam.pose_eig.R(0,0), left_cam.pose_eig.R(0,1), left_cam.pose_eig.R(0,2), left_cam.pose_eig.t(0),
@@ -152,6 +154,8 @@ class Calculator
                 std::cout << p << std::endl;
             }
         }
+        
+        //https://www.cv-learn.com/20230616-slam-book-kr/
         static void Triangulation_v2(const Camera& left_cam, const Camera& right_cam)
         {
             for(int i = 0; i < left_cam.points_pixel_h.size(); i++)
@@ -173,7 +177,7 @@ class Calculator
                 Vector2f b, result;
 
                 base_line_ << -left_cam.base_line, 0., 0.;
-                
+
                 b << -base_line_.transpose()*left_sp, -base_line_.transpose()*right_sp;
 
                 A << left_sp.transpose()*left_sp, -right_sp.transpose()*left_sp,
@@ -204,7 +208,6 @@ int main(int argc, char** argv)
     float gap = 0.1;
     float x = -gap*2.0, y = -gap*2.0, z = 2.0;
     
-    // cv::Point3f* data = point_cloud.ptr<cv::Point
     std::cout << "-----------ground truth-----------" << std::endl;
     for(int i = 0; i < point_cloud.cols; i++)
     {
