@@ -37,7 +37,13 @@ add_executable(Triangulation src/Triangulation.cpp)
 target_link_libraries(Triangulation
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  ${CERES_LIBRARIES}
+)
+
+add_executable(PoseEstimation src/PoseEstimation.cpp)
+
+target_link_libraries(PoseEstimation
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )
 
 #############
