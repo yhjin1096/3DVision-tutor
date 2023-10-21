@@ -1,0 +1,8 @@
+prefix=/home/cona/3DVision-tutor/install
+
+Name: 3DVision-tutor
+Description: Description of 3DVision-tutor
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -l3DVision-tutor
+Requires: roscpp

@@ -30,7 +30,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${Eigen3_INCLUDE_DIR}
-  ${Pangolin_INCLUDE_DIRS}
+  # ${Pangolin_INCLUDE_DIRS}
 )
 add_executable(${PROJECT_NAME}_node src/1_HelloPangolin.cpp)
 
@@ -38,7 +38,7 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}
-  ${Pangolin_LIBRARIES}
+  # ${Pangolin_LIBRARIES}
 )
 
 #############
