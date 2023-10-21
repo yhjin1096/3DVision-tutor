@@ -1,8 +1,0 @@
-prefix=/home/cona/3DVision-tutor/devel
-
-Name: viz_pangolin
-Description: Description of viz_pangolin
-Version: 0.0.0
-Cflags: -I/home/cona/3DVision-tutor/src/viz_pangolin/include
-Libs: -L${prefix}/lib -lviz_pangolin
-Requires: roscpp
