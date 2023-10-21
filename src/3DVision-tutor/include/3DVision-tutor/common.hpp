@@ -82,7 +82,8 @@ class Camera
                 cv::Mat result = K_mat * tmp_mat;
 
                 int x = std::round(result.at<float>(0)), y = std::round(result.at<float>(1));
-                if(x > this->image.cols || y > this->image.rows)
+                if(x >= this->image.cols || y >= this->image.rows ||
+                   x < 0 || y < 0)
                     continue;
                     
                 this->points_pixel_h.push_back(result);
@@ -99,6 +100,35 @@ class Camera
 class Calculator
 {
     public:
+        static Matrix3d rpy_to_REigen(double x, double y, double z)
+        {
+            Matrix3d Rx, Ry, Rz, result;
+            
+            x = x / 180.0 * CV_PI;
+            y = y / 180.0 * CV_PI;
+            z = z / 180.0 * CV_PI;
+
+            // Rx << 1.0, 0.0, 0.0,
+            //       0.0, cos(x), -sin(x),
+            //       0.0, sin(x), cos(x);
+            
+            // Ry << cos(y), 0.0, sin(y),
+            //       0.0, 1.0, 0.0,
+            //       -sin(y), 0.0, cos(y);
+
+            // Rz << cos(z), -sin(z), 0.0,
+            //       sin(z), cos(z), 0.0,
+            //       0.0, 0.0, 1.0;
+                
+            // result = Rz * Ry * Rx;
+
+            
+            result = Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX())
+                    * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
+                    * Eigen::AngleAxisd(z, Eigen::Vector3d::UnitZ());
+            
+            return result;
+        };
         static cv::Mat rpy_to_RMat(double x, double y, double z)
         {
             Matrix3d Rx, Ry, Rz, result;

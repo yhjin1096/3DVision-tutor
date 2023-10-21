@@ -7,10 +7,24 @@ class Node
 
         Node()
         {
+            //오른쪽 카메라 기준 왼쪽 카메라 위치
             right_cam.pose_eig.t << -right_cam.base_line, 0.0, 0.0;
             left_cam.pose_aff = Calculator::Eig_to_Aff(left_cam.pose_eig);
             right_cam.pose_aff = Calculator::Eig_to_Aff(right_cam.pose_eig);
         }
+
+        void setCameraPose(const pose_t& pose)
+        {
+            //world <-> camera
+            this->left_cam.pose_eig.R = pose.R.inverse();
+            this->left_cam.pose_eig.t = -pose.R.inverse()*pose.t;
+            this->left_cam.pose_aff = Calculator::Eig_to_Aff(this->left_cam.pose_eig);
+            
+            //world <-> left camera <-> right camera
+            this->right_cam.pose_eig.R = pose.R.inverse();
+            this->right_cam.pose_eig.t = this->right_cam.pose_eig.R * this->left_cam.pose_eig.t + this->right_cam.pose_eig.t;
+            this->right_cam.pose_aff = Calculator::Eig_to_Aff(this->right_cam.pose_eig);
+        };
 
     private:
 };
@@ -123,10 +137,70 @@ int PoseEstimation_Ex1()
 
 int main(int argc, char** argv)
 {
-    Node first_node;
-    //second node pose 설정 후 pose estimation
+    Node first_node, second_node;
+    /*------------------------------2번 노드 pose 초기화(input: world기준 카메라 위치)------------------------------*/
+    pose_t second_pose;
+    second_pose.R = Calculator::rpy_to_REigen(0, 0, 0);
+    second_pose.t << 0.1, 0.1, 0.1;
+    second_node.setCameraPose(second_pose);
+    
+    // PoseEstimation_Ex1();
+    /*------------------------------world기준 point cloud 초기화------------------------------*/
+    int num_points = 5;
+    cv::Mat point_cloud(1, num_points*num_points, CV_32FC3);
+    float gap = 0.1;
+    float x = -gap*2.0, y = -gap*2.0, z = 2.0;
+    
+    std::cout << "-----------ground truth-----------" << std::endl;
+    for(int i = 0; i < point_cloud.cols; i++)
+    {
+        point_cloud.at<cv::Point3f>(i).x = x;
+        point_cloud.at<cv::Point3f>(i).y = y;
+        point_cloud.at<cv::Point3f>(i).z = z;
+        
+        std::cout << x << ", " << y << ", " << z << std::endl;
 
-    PoseEstimation_Ex1();
+        x += gap;
+        // y += 0.5;
+        // z += 0.5;
+        if(i % num_points == num_points-1)
+        {
+            x = -gap*2.0;
+            y += gap;
+        }
+        // std::cout << point_cloud.at<cv::Point3f>(i) << std::endl;
+    }
+    std::cout << "----------------------" << std::endl;
+
+    /*------------------------------point cloud 기반으로 이미지 만들기------------------------------*/
+
+    first_node.left_cam.SetImage(point_cloud);
+    first_node.right_cam.SetImage(point_cloud);
+    second_node.left_cam.SetImage(point_cloud);
+    second_node.right_cam.SetImage(point_cloud);
+    cv::imshow("n1 left_cam.image",first_node.left_cam.image);
+    cv::imshow("n1 right_cam.image",first_node.right_cam.image);
+    cv::imshow("n2 left_cam.image",second_node.left_cam.image);
+    cv::imshow("n2 right_cam.image",second_node.right_cam.image);
+    cv::waitKey(0);
+    // cv::destroyAllWindows();
+
+    /*------------------------------3D viewer------------------------------*/
+    
+    cv::viz::Viz3d myWindow("Coordinate Frame");
+    myWindow.showWidget("n1 Left_Cam", cv::viz::WCoordinateSystem(), first_node.left_cam.pose_aff.inv());
+    myWindow.showWidget("n1 Right_Cam", cv::viz::WCoordinateSystem(), first_node.right_cam.pose_aff.inv());
+    myWindow.showWidget("n2 Left_Cam", cv::viz::WCoordinateSystem(), second_node.left_cam.pose_aff.inv());
+    myWindow.showWidget("n2 Right_Cam", cv::viz::WCoordinateSystem(), second_node.right_cam.pose_aff.inv());
+    myWindow.setWindowSize(cv::Size(1280,960));
+
+    cv::viz::WCloud cloud_widget(point_cloud, cv::viz::Color::green());
+    myWindow.showWidget("point_cloud", cloud_widget);
+
+    while(!myWindow.wasStopped())
+    {
+        myWindow.spinOnce(1, true);
+    }
 
     return 0;
 }

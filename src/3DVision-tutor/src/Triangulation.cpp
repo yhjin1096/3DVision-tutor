@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     
     cv::viz::Viz3d myWindow("Coordinate Frame");
     myWindow.showWidget("Left_Cam", cv::viz::WCoordinateSystem());
-    myWindow.showWidget("Right_Cam", cv::viz::WCoordinateSystem(), right_cam.pose_aff);
+    myWindow.showWidget("Right_Cam", cv::viz::WCoordinateSystem(), right_cam.pose_aff.inv());
     myWindow.setWindowSize(cv::Size(1280,960));
 
     cv::viz::WCloud cloud_widget(point_cloud, cv::viz::Color::green());
