@@ -1,8 +1,0 @@
-prefix=/home/cona/3DVision-tutor/install
-
-Name: viz_opencv
-Description: Description of viz_opencv
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lviz_opencv
-Requires: roscpp
