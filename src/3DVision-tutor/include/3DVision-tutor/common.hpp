@@ -46,10 +46,11 @@ class Camera
         pose_t pose_eig;
 
         cv::Mat image, K_mat;
-        cv::Affine3f pose_aff;
+        cv::Affine3f pose_aff; //c2w
         double base_line = 0.54;
 
         std::vector<cv::Mat> points_pixel_h;
+        std::vector<cv::Point2f> points_pixel;
 
         Camera()
         {
@@ -87,6 +88,7 @@ class Camera
                     continue;
                     
                 this->points_pixel_h.push_back(result);
+                this->points_pixel.push_back(cv::Point2f(result.at<float>(0),result.at<float>(1)));
                     
                 this->image.at<cv::Vec3b>(y, x)[0] = 0;
                 this->image.at<cv::Vec3b>(y, x)[1] = 255;

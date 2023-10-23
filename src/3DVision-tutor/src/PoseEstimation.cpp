@@ -139,26 +139,34 @@ int main(int argc, char** argv)
 {
     Node first_node, second_node;
     /*------------------------------2번 노드 pose 초기화(input: world기준 카메라 위치)------------------------------*/
+
     pose_t second_pose;
-    second_pose.R = Calculator::rpy_to_REigen(0, 0, 0);
+    second_pose.R = Calculator::rpy_to_REigen(5, 5, 0);
     second_pose.t << 0.1, 0.1, 0.1;
     second_node.setCameraPose(second_pose);
+
+    std::cout << "-----------ground truth-----------" << std::endl;
+    std::cout << second_node.left_cam.pose_aff.matrix.inv() << std::endl;
+    std::cout << "----------------------" << std::endl;
     
     // PoseEstimation_Ex1();
+
     /*------------------------------world기준 point cloud 초기화------------------------------*/
+
     int num_points = 5;
+    std::vector<cv::Point3f> point_cloud_;
     cv::Mat point_cloud(1, num_points*num_points, CV_32FC3);
     float gap = 0.1;
     float x = -gap*2.0, y = -gap*2.0, z = 2.0;
     
-    std::cout << "-----------ground truth-----------" << std::endl;
     for(int i = 0; i < point_cloud.cols; i++)
     {
         point_cloud.at<cv::Point3f>(i).x = x;
         point_cloud.at<cv::Point3f>(i).y = y;
         point_cloud.at<cv::Point3f>(i).z = z;
+        point_cloud_.push_back(point_cloud.at<cv::Point3f>(i));
         
-        std::cout << x << ", " << y << ", " << z << std::endl;
+        // std::cout << x << ", " << y << ", " << z << std::endl;
 
         x += gap;
         // y += 0.5;
@@ -170,7 +178,6 @@ int main(int argc, char** argv)
         }
         // std::cout << point_cloud.at<cv::Point3f>(i) << std::endl;
     }
-    std::cout << "----------------------" << std::endl;
 
     /*------------------------------point cloud 기반으로 이미지 만들기------------------------------*/
 
@@ -184,6 +191,16 @@ int main(int argc, char** argv)
     cv::imshow("n2 right_cam.image",second_node.right_cam.image);
     cv::waitKey(0);
     // cv::destroyAllWindows();
+
+    cv::Mat dist_coeff = cv::Mat::zeros(5, 1, CV_64F), rvec, tvec, rot_mat;
+    std::vector<int> inlier;
+    cv::solvePnPRansac(/*3d point*/point_cloud_, /*2번 노드 왼쪽 카메라 pixel*/second_node.left_cam.points_pixel, first_node.left_cam.K_mat, dist_coeff, rvec, tvec, false, 500, 2, 0.99, inlier);
+    cv::Rodrigues(rvec, rot_mat);
+
+    std::cout << "-----------Pose Estimation-----------" << std::endl;
+    std::cout << rot_mat.inv() << std::endl;
+    std::cout << -rot_mat.inv()*tvec << std::endl;
+    std::cout << "----------------------" << std::endl;
 
     /*------------------------------3D viewer------------------------------*/
     
