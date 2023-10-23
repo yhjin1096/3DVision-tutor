@@ -140,12 +140,15 @@ int main(int argc, char** argv)
     Node first_node, second_node;
     /*------------------------------2번 노드 pose 초기화(input: world기준 카메라 위치)------------------------------*/
 
-    pose_t second_pose;
+    pose_t first_pose, second_pose;
     second_pose.R = Calculator::rpy_to_REigen(5, 5, 0);
     second_pose.t << 0.1, 0.1, 0.1;
+    first_pose.t << 0.1, 0.1, 0.1;
+    first_node.setCameraPose(first_pose);
     second_node.setCameraPose(second_pose);
 
     std::cout << "-----------ground truth-----------" << std::endl;
+    std::cout << first_node.left_cam.pose_aff.matrix.inv() << std::endl;
     std::cout << second_node.left_cam.pose_aff.matrix.inv() << std::endl;
     std::cout << "----------------------" << std::endl;
     
@@ -194,7 +197,8 @@ int main(int argc, char** argv)
 
     cv::Mat dist_coeff = cv::Mat::zeros(5, 1, CV_64F), rvec, tvec, rot_mat;
     std::vector<int> inlier;
-    cv::solvePnPRansac(/*3d point*/point_cloud_, /*2번 노드 왼쪽 카메라 pixel*/second_node.left_cam.points_pixel, first_node.left_cam.K_mat, dist_coeff, rvec, tvec, false, 500, 2, 0.99, inlier);
+    //world 기준 3d point, 2번 노드 왼쪽 카메라 pixel -> world 기준 2번 노드 왼쪽 카메라의 pose
+    cv::solvePnPRansac(point_cloud_, second_node.left_cam.points_pixel, first_node.left_cam.K_mat, dist_coeff, rvec, tvec, false, 500, 2, 0.99, inlier);
     cv::Rodrigues(rvec, rot_mat);
 
     std::cout << "-----------Pose Estimation-----------" << std::endl;
