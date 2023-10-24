@@ -56,6 +56,14 @@ target_link_libraries(3_transformation
   ${CERES_LIBRARIES}
 )
 
+add_executable(4_multi_pose src/4_multi_pose.cpp)
+
+target_link_libraries(4_multi_pose
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${CERES_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
