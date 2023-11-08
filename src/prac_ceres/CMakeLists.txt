@@ -40,29 +40,35 @@ add_executable(lht_2_add_residual src/lht_2_add_residual.cpp)
 add_executable(lht_3_multivariate src/lht_3_multivariate.cpp)
 add_executable(lht_4_pose2d src/lht_4_pose2d.cpp)
 
+add_executable(ct_1_curve_fitting src/ct_1_curve_fitting.cpp)
+
 target_link_libraries(lht_1_helloworld
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}
 )
-
 target_link_libraries(lht_2_add_residual
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}
 )
-
 target_link_libraries(lht_3_multivariate
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}
 )
-
 target_link_libraries(lht_4_pose2d
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}
 )
+
+target_link_libraries(ct_1_curve_fitting
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${CERES_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
