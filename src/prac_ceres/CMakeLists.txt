@@ -41,6 +41,7 @@ add_executable(lht_3_multivariate src/lht_3_multivariate.cpp)
 add_executable(lht_4_pose2d src/lht_4_pose2d.cpp)
 
 add_executable(ct_1_curve_fitting src/ct_1_curve_fitting.cpp)
+add_executable(ct_2_simple_bundle_adjuster src/ct_2_simple_bundle_adjuster.cpp)
 
 target_link_libraries(lht_1_helloworld
   ${catkin_LIBRARIES}
@@ -68,7 +69,11 @@ target_link_libraries(ct_1_curve_fitting
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}
 )
-
+target_link_libraries(ct_2_simple_bundle_adjuster
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${CERES_LIBRARIES}
+)
 #############
 ## Install ##
 #############

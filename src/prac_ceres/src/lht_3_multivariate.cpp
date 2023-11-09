@@ -1,4 +1,4 @@
-#include "prac_ceres/common.h"
+#include "prac_ceres/common.hpp"
 
 struct CostFunctor {
     template<typename T>

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "ceres/ceres.h"
+#include "ceres/rotation.h"
 #include "glog/logging.h"
 
 #include <opencv2/opencv.hpp>

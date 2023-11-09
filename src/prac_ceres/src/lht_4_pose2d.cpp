@@ -1,4 +1,4 @@
-#include "prac_ceres/common.h"
+#include "prac_ceres/common.hpp"
 
 // 해당 cost function은 ceres example의 pose_graph_2d에서 볼 수 있음
 class Pose2dErrorTerm{

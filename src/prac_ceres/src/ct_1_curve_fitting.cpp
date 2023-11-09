@@ -1,4 +1,4 @@
-#include "prac_ceres/common.h"
+#include "prac_ceres/common.hpp"
 
 const int kNumObservations = 67;
 const double data[] = {
