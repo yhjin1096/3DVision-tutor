@@ -10,6 +10,7 @@ project(viz_pangolin)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
 )
+set(OpenCV_DIR /home/cona/open_library/opencv-3.4.16/install/share/OpenCV)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 catkin_package(
