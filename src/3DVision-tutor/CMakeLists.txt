@@ -38,3 +38,4 @@ link_libraries(
 add_executable(Triangulation src/Triangulation.cpp)
 add_executable(PoseEstimation src/PoseEstimation.cpp)
 add_executable(Stella_ORBExtraction src/Stella_ORBExtraction.cpp)
+add_executable(mono_vo src/mono_vo.cpp)
