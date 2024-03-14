@@ -4,21 +4,110 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <assert.h>
+#include <ctype.h>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+#include <ctime>
+#include <sstream>
+#include <fstream>
+#include <string>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include "opencv2/video/tracking.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
 
 #include "eigen3/Eigen/Core"
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
+typedef Eigen::Matrix<double,4,4> Matrix4d;
+typedef Eigen::Matrix<double,4,3> Matrix4_3d;
+typedef Eigen::Matrix<double,3,3> Matrix3d;
+typedef Eigen::Matrix<double,3,4> Matrix3_4d;
+typedef Eigen::Matrix<double,2,2> Matrix2d;
+typedef Eigen::Matrix<double,2,1> Vector2d;
+typedef Eigen::Matrix<double,3,1> Vector3d;
+typedef Eigen::Matrix<double,4,1> Vector4d;
+typedef Eigen::Matrix<double,5,1> Vector5d;
+typedef Eigen::Matrix<double,6,1> Vector6d;
+typedef Eigen::Matrix<float,2,1> Vector2f;
+typedef Eigen::Matrix<float,6,1> Vector6f;
+typedef Eigen::Matrix<float,72,1> Vector72f;
+typedef Eigen::Matrix<double,36,1> Vector36d;
+typedef Eigen::Matrix<double,8,1> Vector8d;
+typedef Eigen::Matrix<double,12,1> Vector12d;
+
+class Frame
+{
+    public:
+        cv::Mat image;
+        cv::Mat R, t;
+        double focal = 718.8560;
+        cv::Point2d pp = cv::Point2d(607.1928, 185.2157);
+    private:
+};
+
+class GTPose
+{
+    public:
+        std::vector<cv::Mat> rotations;
+        std::vector<cv::Mat> translations;
+
+        void readGTPose(const std::string& path)
+        {
+            std::ifstream file(path);
+            std::string line, word;
+
+            if(file.is_open())
+            {
+                while(getline(file, line))
+                {
+                    int i = 0, j = 0;
+                    Matrix3_4d pose;
+                    std::stringstream ss(line);
+                    while(getline(ss, word, ' '))
+                    {
+                        pose(j,i) = std::stod(word);
+                        i++;
+                        if(i==4)
+                        {
+                            i=0;
+                            j++;
+                        }
+                    }
+                    cv::Mat R = (cv::Mat_<float>(3,3) << pose.topLeftCorner(3,3)(0,0), pose.topLeftCorner(3,3)(0,1), pose.topLeftCorner(3,3)(0,2),
+                                                         pose.topLeftCorner(3,3)(1,0), pose.topLeftCorner(3,3)(1,1), pose.topLeftCorner(3,3)(1,2),
+                                                         pose.topLeftCorner(3,3)(2,0), pose.topLeftCorner(3,3)(2,1), pose.topLeftCorner(3,3)(2,2));
+                    cv::Mat t(3, 1, CV_32FC1);
+                    t.at<float>(0,0) = pose.topRightCorner(3,1)(0,0);
+                    t.at<float>(1,0) = pose.topRightCorner(3,1)(1,0);
+                    t.at<float>(2,0) = pose.topRightCorner(3,1)(2,0);
+                    
+                    rotations.push_back(R);
+                    translations.push_back(t);
+                }
+                file.close();
+            }
+            else
+            {
+                std::cout << "file not found" << std::endl;
+                exit(0);
+            }
+        };
+    private:
+};
+
 const std::string imageExtensions[] = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
 
 inline void CountImages(int& num_images, const std::string& path)
 {
+    num_images = 0;
     try {
         // 지정된 폴더 내의 모든 파일에 대해 반복
         for (const auto& entry : boost::filesystem::directory_iterator(path)) {

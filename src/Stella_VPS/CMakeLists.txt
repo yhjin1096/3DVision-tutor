@@ -46,7 +46,21 @@ add_executable(${PROJECT_NAME}_node src/main.cpp
                                     src/orb_params.cc
 )
 
+add_executable(mono_vo_node src/mono_vo.cpp
+                            src/orb_extractor.cc
+                            src/orb_extractor_node.cc
+                            src/orb_impl.cc
+                            src/orb_params.cc
+)
+
 target_link_libraries(${PROJECT_NAME}_node
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${CERES_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
+target_link_libraries(mono_vo_node
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}

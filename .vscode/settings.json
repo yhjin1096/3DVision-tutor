@@ -99,7 +99,8 @@
         "dense": "cpp",
         "filesystem": "cpp",
         "*.ipp": "cpp",
-        "geometry": "cpp"
+        "geometry": "cpp",
+        "core": "cpp"
     },
     "python.autoComplete.extraPaths": [
         "/opt/ros/noetic/lib/python3/dist-packages"
