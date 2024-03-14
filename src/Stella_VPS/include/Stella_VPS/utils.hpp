@@ -43,7 +43,7 @@ typedef Eigen::Matrix<double,36,1> Vector36d;
 typedef Eigen::Matrix<double,8,1> Vector8d;
 typedef Eigen::Matrix<double,12,1> Vector12d;
 
-class Frame
+class FrameMono
 {
     public:
         cv::Mat image;
@@ -81,13 +81,13 @@ class GTPose
                             j++;
                         }
                     }
-                    cv::Mat R = (cv::Mat_<float>(3,3) << pose.topLeftCorner(3,3)(0,0), pose.topLeftCorner(3,3)(0,1), pose.topLeftCorner(3,3)(0,2),
-                                                         pose.topLeftCorner(3,3)(1,0), pose.topLeftCorner(3,3)(1,1), pose.topLeftCorner(3,3)(1,2),
-                                                         pose.topLeftCorner(3,3)(2,0), pose.topLeftCorner(3,3)(2,1), pose.topLeftCorner(3,3)(2,2));
-                    cv::Mat t(3, 1, CV_32FC1);
-                    t.at<float>(0,0) = pose.topRightCorner(3,1)(0,0);
-                    t.at<float>(1,0) = pose.topRightCorner(3,1)(1,0);
-                    t.at<float>(2,0) = pose.topRightCorner(3,1)(2,0);
+                    cv::Mat R = (cv::Mat_<double>(3,3) << pose.topLeftCorner(3,3)(0,0), pose.topLeftCorner(3,3)(0,1), pose.topLeftCorner(3,3)(0,2),
+                                                          pose.topLeftCorner(3,3)(1,0), pose.topLeftCorner(3,3)(1,1), pose.topLeftCorner(3,3)(1,2),
+                                                          pose.topLeftCorner(3,3)(2,0), pose.topLeftCorner(3,3)(2,1), pose.topLeftCorner(3,3)(2,2));
+                    cv::Mat t(3, 1, CV_64FC1);
+                    t.at<double>(0,0) = pose.topRightCorner(3,1)(0,0);
+                    t.at<double>(1,0) = pose.topRightCorner(3,1)(1,0);
+                    t.at<double>(2,0) = pose.topRightCorner(3,1)(2,0);
                     
                     rotations.push_back(R);
                     translations.push_back(t);
@@ -102,6 +102,32 @@ class GTPose
         };
     private:
 };
+
+inline double calculateRotationError(const cv::Mat& R_gt, const cv::Mat& R_est) {
+    // Calculate the difference rotation matrix
+    cv::Mat R_diff = R_gt.t() * R_est;
+
+    // Trace of R_diff
+    double trace = R_diff.at<double>(0, 0) + R_diff.at<double>(1, 1) + R_diff.at<double>(2, 2);
+
+    // Calculate the rotation error in radians
+    double theta = acos(std::max(std::min((trace - 1) / 2.0, 1.0), -1.0));
+
+    // Convert radians to degrees
+    double theta_deg = theta * (180.0 / CV_PI);
+
+    return theta_deg;
+}
+
+inline double calculateTranslationError(const cv::Mat& t_gt, const cv::Mat& t_est)
+{
+    double error;
+
+    cv::Mat t_diff = t_gt - t_est;
+    error = cv::norm(t_diff);
+
+    return error;
+}
 
 const std::string imageExtensions[] = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
 
