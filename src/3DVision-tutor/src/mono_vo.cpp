@@ -1,6 +1,8 @@
 //https://github.com/avisingh599/mono-vo.git
 #include "3DVision-tutor/mono_vo.hpp"
 
+#define MIN_NUM_FEAT 2000
+
 int main(int argc, char** argv)
 {
     cv::Mat left_image, right_image, prv_image;
@@ -12,7 +14,7 @@ int main(int argc, char** argv)
     
     std::vector<cv::KeyPoint> curr_keypoint, curr_keypoint_save, prev_keypoint;
     std::vector<cv::Point2f> curr_points, curr_points_save, prev_points;
-    cv::Mat E, R, t, R_f, t_f, mask;
+    cv::Mat E, R, t, R_f, t_f, mask; //R_f, t_f는 누적 pose
     double scale = 1.00;
     double focal = 718.8560;
     cv::Point2d pp(607.1928, 185.2157);
@@ -44,7 +46,7 @@ int main(int argc, char** argv)
         curr_keypoint_save = curr_keypoint;
         curr_points_save = curr_points;
 
-        if(i != 0)
+        if(i != 0) //첫 이미지는 tracking 필요 없기 때문
         {
             std::vector<uchar> status;
             
@@ -52,30 +54,31 @@ int main(int argc, char** argv)
             E = cv::findEssentialMat(curr_points, prev_points, focal, pp, cv::RANSAC, 0.999, 1.0, mask);
             cv::recoverPose(E, curr_points, prev_points, R, t, focal, pp, mask);
             
-            if(i==1)
+            if(i==1) //첫 relative pose는 누적 x, 그대로 초기화
             {
                 R_f = R.clone();
                 t_f = t.clone();
             }
             
-            cv::Mat prevPts(2, prev_points.size(), CV_64F), currPts(2, curr_points.size(), CV_64F);
+            // cv::Mat prevPts(2, prev_points.size(), CV_64F), currPts(2, curr_points.size(), CV_64F);
 
-            for(int j = 0; j < prev_points.size(); j++)
-            {
-                prevPts.at<double>(0,j) = prev_points.at(j).x;
-                prevPts.at<double>(1,j) = prev_points.at(j).y;
+            // for(int j = 0; j < prev_points.size(); j++)
+            // {
+            //     prevPts.at<double>(0,j) = prev_points.at(j).x;
+            //     prevPts.at<double>(1,j) = prev_points.at(j).y;
 
-                currPts.at<double>(0,j) = curr_points.at(j).x;
-                currPts.at<double>(1,j) = curr_points.at(j).y;
-            }
+            //     currPts.at<double>(0,j) = curr_points.at(j).x;
+            //     currPts.at<double>(1,j) = curr_points.at(j).y;
+            // }
 
-            scale = getAbsoluteScale(num_images, 0, t.at<double>(2));
+            scale = getAbsoluteScale(i, 0, t.at<double>(2));
 
-            if ((scale>0.1)&&(t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1)))
+            if (i != 1 && (scale>0.1)&&(t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1)))
             {
                 t_f = t_f + scale*(R_f*t);
                 R_f = R*R_f;
             }
+
         }
         
         prv_image = left_image.clone();
@@ -87,9 +90,8 @@ int main(int argc, char** argv)
         prev_points = curr_points_save;
 
         //visualize
-        if(i > 1)
+        if(i > 0)
         {
-            std::cout << t_f << std::endl;
             int x = int(t_f.at<double>(0)) + 300;
             int y = int(t_f.at<double>(2)) + 100;
             cv::circle(traj, cv::Point(x, y) ,1, CV_RGB(255,0,0), 2);
