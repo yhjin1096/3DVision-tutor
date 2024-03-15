@@ -30,13 +30,30 @@ void featureTracking(const cv::Mat &prev_img, const cv::Mat &curr_img, std::vect
     }
 }
 
-void featureDetection(const cv::Mat &img, std::vector<cv::KeyPoint>& keypoints, std::vector<cv::Point2f>& points)
+void featureDetection(const cv::Mat &img, std::vector<cv::KeyPoint>& keypoints, std::vector<cv::Point2f>& points, cv::Mat& descriptor)
 {
     // uses FAST as of now, modify parameters as necessary
     int fast_threshold = 20;
     bool nonmaxSuppression = true;
     cv::FAST(img, keypoints, fast_threshold, nonmaxSuppression);
+    
+    int indexCorrection = 0;
+    int size = keypoints.size();
+    
+    // //filtering
+    // for(int i = 0; i < size; i++)
+    // {
+    //   if(keypoints[i - indexCorrection].response < 100)
+    //   {
+    //     keypoints.erase(keypoints.begin() + (i-indexCorrection));
+    //     indexCorrection++;
+    //   }
+    // }
+    
     cv::KeyPoint::convert(keypoints, points, std::vector<int>());
+
+    cv::Ptr<cv::ORB> orb = cv::ORB::create();
+    orb->compute(img, keypoints, descriptor);
 }
 
 double getAbsoluteScale(int frame_id, int sequence_id, double z_cal)	{

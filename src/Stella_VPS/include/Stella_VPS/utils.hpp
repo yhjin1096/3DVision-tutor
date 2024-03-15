@@ -21,7 +21,6 @@
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
-
 #include "eigen3/Eigen/Core"
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
@@ -46,10 +45,14 @@ typedef Eigen::Matrix<double,12,1> Vector12d;
 class FrameMono
 {
     public:
-        cv::Mat image;
         cv::Mat R, t;
         double focal = 718.8560;
         cv::Point2d pp = cv::Point2d(607.1928, 185.2157);
+
+        cv::Mat image;
+        std::vector<cv::KeyPoint> keypoints;
+        std::vector<cv::Point2f> points;
+        cv::Mat descriptor;
     private:
 };
 
@@ -111,6 +114,7 @@ inline double calculateRotationError(const cv::Mat& R_gt, const cv::Mat& R_est) 
     double trace = R_diff.at<double>(0, 0) + R_diff.at<double>(1, 1) + R_diff.at<double>(2, 2);
 
     // Calculate the rotation error in radians
+    // axis-angle roation(rodrigues) error
     double theta = acos(std::max(std::min((trace - 1) / 2.0, 1.0), -1.0));
 
     // Convert radians to degrees
