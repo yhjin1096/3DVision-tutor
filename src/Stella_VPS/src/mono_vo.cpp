@@ -191,13 +191,7 @@ int main(int argc, char** argv)
                     good_knn_matches.push_back(match[0]);
                 }
             }
-            // 상위 top_n개의 match 사용
-            // int top_n = 100;
-            // std::sort(good_bf_matches.begin(), good_bf_matches.end());
-            // std::sort(good_knn_matches.begin(), good_knn_matches.end());
-            // std::vector<cv::DMatch> last_bf_match(good_bf_matches.begin(), good_bf_matches.begin()+top_n);
-            // std::vector<cv::DMatch> last_knn_match(good_knn_matches.begin(), good_knn_matches.begin()+top_n);
-
+            
             std::vector<cv::Point2f> bf_refer_pts, bf_query_pts, knn_refer_pts, knn_query_pts;
             for(int k = 0; k < good_bf_matches.size(); k++)
             {
