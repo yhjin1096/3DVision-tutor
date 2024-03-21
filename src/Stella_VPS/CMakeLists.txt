@@ -20,6 +20,17 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+find_package(Pangolin REQUIRED)
+if (${Pangolin_FOUND})
+    message(STATUS "Found Pangolin - ${Pangolin_DIR}")
+
+    include_directories(${Pangolin_INCLUDE_DIRS})
+    set(PANGOLIN_LIBS ${Pangolin_LIBRARIES})
+
+else (${Pangolin_FOUND})
+    message(STATUS "Could not support Pangolin")
+endif (${Pangolin_FOUND})
+
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES Stella_VPS
@@ -53,6 +64,13 @@ add_executable(mono_vo_node src/mono_vo.cpp
                             src/orb_params.cc
 )
 
+add_executable(stereo_vo_node src/stereo_vo.cpp
+                            src/orb_extractor.cc
+                            src/orb_extractor_node.cc
+                            src/orb_impl.cc
+                            src/orb_params.cc
+)
+
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
@@ -65,6 +83,14 @@ target_link_libraries(mono_vo_node
   ${OpenCV_LIBRARIES}
   ${CERES_LIBRARIES}
   ${PCL_LIBRARIES}
+)
+
+target_link_libraries(stereo_vo_node
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${CERES_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${Pangolin_LIBRARIES}
 )
 
 #############

@@ -56,6 +56,14 @@ class FrameMono
     private:
 };
 
+class FrameStereo
+{
+    public:
+        FrameMono left_cam, right_cam;
+        std::vector<cv::DMatch> stereo_matches;
+    private:
+};
+
 class GTPose
 {
     public:

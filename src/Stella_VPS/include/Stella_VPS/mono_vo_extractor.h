@@ -50,7 +50,7 @@ void featureDetection(const cv::Mat &img, std::vector<cv::KeyPoint>& keypoints, 
     //   }
     // }
     
-    cv::KeyPoint::convert(keypoints, points, std::vector<int>());
+    // cv::KeyPoint::convert(keypoints, points, std::vector<int>());
 
     cv::Ptr<cv::ORB> orb = cv::ORB::create();
     orb->compute(img, keypoints, descriptor);
