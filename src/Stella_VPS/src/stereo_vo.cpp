@@ -74,69 +74,69 @@ int main(int argc, char** argv)
         cv::Mat pts_4d;
         cv::triangulatePoints(P0, P1, refer.left_cam.points, refer.right_cam.points, pts_4d);
         
-        /*-------------------------------------------------------*/
-        //visualize stereo matching
-        cv::Mat img_bf;
-        cv::drawMatches(refer.left_cam.image, refer.left_cam.keypoints,
-                        refer.right_cam.image, refer.right_cam.keypoints, refer.stereo_matches,
-                        img_bf, cv::Scalar::all(-1), cv::Scalar::all(-1),
-                        std::vector<char>(),
-                        cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-        cv::imshow("img_bf", img_bf);
-        cv::waitKey(30);
+        // /*-------------------------------------------------------*/
+        // //visualize stereo matching
+        // cv::Mat img_bf;
+        // cv::drawMatches(refer.left_cam.image, refer.left_cam.keypoints,
+        //                 refer.right_cam.image, refer.right_cam.keypoints, refer.stereo_matches,
+        //                 img_bf, cv::Scalar::all(-1), cv::Scalar::all(-1),
+        //                 std::vector<char>(),
+        //                 cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+        // cv::imshow("img_bf", img_bf);
+        // cv::waitKey(30);
         
-        // visualize 3d
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        d_cam.Activate(s_cam);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glPointSize(3);
+        // // visualize 3d
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // d_cam.Activate(s_cam);
+        // glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        // glPointSize(3);
 
-        // Draw World coordinate frame
-        glBegin(GL_LINES);
-        glColor3f(1.0, 0.0, 0.0);
-        glVertex3d(0.0, 0.0, 0.0);
-        glVertex3d(0.5, 0.0, 0.0);
-        glColor3f(0.0, 1.0, 0.0);
-        glVertex3d(0.0, 0.0, 0.0);
-        glVertex3d(0.0, 0.5, 0.0);
-        glColor3f(0.0, 0.0, 1.0);
-        glVertex3d(0.0, 0.0, 0.0);
-        glVertex3d(0.0, 0.0, 0.5);
-        glEnd();
+        // // Draw World coordinate frame
+        // glBegin(GL_LINES);
+        // glColor3f(1.0, 0.0, 0.0);
+        // glVertex3d(0.0, 0.0, 0.0);
+        // glVertex3d(0.5, 0.0, 0.0);
+        // glColor3f(0.0, 1.0, 0.0);
+        // glVertex3d(0.0, 0.0, 0.0);
+        // glVertex3d(0.0, 0.5, 0.0);
+        // glColor3f(0.0, 0.0, 1.0);
+        // glVertex3d(0.0, 0.0, 0.0);
+        // glVertex3d(0.0, 0.0, 0.5);
+        // glEnd();
 
-        glBegin(GL_POINTS);
-        glColor3f(1.0, 0.0, 0.0);
-        for (int i = 0; i < pts_4d.cols; i++) {
-            cv::Mat x = pts_4d.col(i);
-            x /= x.at<float>(3, 0);
-            glVertex3d(x.at<float>(0, 0), x.at<float>(1, 0), x.at<float>(2, 0));
-            // std::cout << x.at<float>(0, 0) << " " << x.at<float>(1, 0) << " " << x.at<float>(2, 0) << std::endl;
-        }
-        glEnd();
-
-
-        pangolin::FinishFrame();
-        usleep(5000); // sleep 5 ms
-        /*-------------------------------------------------------*/
-
-        // for(int j = 1; j <= observe_gap; j++)
-        // {
-        //     FrameStereo query;
-        //     query.left_cam.image = cv::imread(path + "image_0/" + cv::format("%06d.png", i + j));
-        //     query.right_cam.image = cv::imread(path + "image_1/" + cv::format("%06d.png", i + j));
-            
-        //     cv::cvtColor(query.left_cam.image, query.left_cam.image, CV_BGR2GRAY);
-        //     cv::cvtColor(query.right_cam.image, query.right_cam.image, CV_BGR2GRAY);
-        //     // orb_etr.extract(query.left_cam.image, cv::Mat{}, query.left_cam.keypoints, query.left_cam.descriptor);
-        //     // orb_etr.extract(query.right_cam.image, cv::Mat{}, query.right_cam.keypoints, query.right_cam.descriptor);
-            
-        //     std::vector<uchar> status;
-        //     std::vector<float> err;
-        //     cv::TermCriteria termcrit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01);
-        //     cv::calcOpticalFlowPyrLK(refer.left_cam.image, query.left_cam.image,
-        //                             refer.left_cam.points, query.left_cam.points,
-        //                             status, err, cv::Size(21, 21), 3, termcrit, 0, 0.001);
+        // glBegin(GL_POINTS);
+        // glColor3f(1.0, 0.0, 0.0);
+        // for (int i = 0; i < pts_4d.cols; i++) {
+        //     cv::Mat x = pts_4d.col(i);
+        //     x /= x.at<float>(3, 0);
+        //     glVertex3d(x.at<float>(0, 0), x.at<float>(1, 0), x.at<float>(2, 0));
+        //     // std::cout << x.at<float>(0, 0) << " " << x.at<float>(1, 0) << " " << x.at<float>(2, 0) << std::endl;
         // }
+        // glEnd();
+
+
+        // pangolin::FinishFrame();
+        // usleep(5000); // sleep 5 ms
+        // /*-------------------------------------------------------*/
+
+        for(int j = 1; j <= observe_gap; j++)
+        {
+            FrameStereo query;
+            query.left_cam.image = cv::imread(path + "image_0/" + cv::format("%06d.png", i + j));
+            query.right_cam.image = cv::imread(path + "image_1/" + cv::format("%06d.png", i + j));
+            
+            cv::cvtColor(query.left_cam.image, query.left_cam.image, CV_BGR2GRAY);
+            cv::cvtColor(query.right_cam.image, query.right_cam.image, CV_BGR2GRAY);
+            // orb_etr.extract(query.left_cam.image, cv::Mat{}, query.left_cam.keypoints, query.left_cam.descriptor);
+            // orb_etr.extract(query.right_cam.image, cv::Mat{}, query.right_cam.keypoints, query.right_cam.descriptor);
+            
+            std::vector<uchar> status;
+            std::vector<float> err;
+            cv::TermCriteria termcrit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01);
+            cv::calcOpticalFlowPyrLK(refer.left_cam.image, query.left_cam.image,
+                                    refer.left_cam.points, query.left_cam.points,
+                                    status, err, cv::Size(21, 21), 3, termcrit, 0, 0.001);
+        }
     }
 
     return 0;
