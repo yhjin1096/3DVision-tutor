@@ -21,8 +21,8 @@ int main(int argc, char **argv)
     cv::Mat pose = cv::Mat::zeros(3, 1, CV_64F);
     cv::Mat Rpose = cv::Mat::eye(3, 3, CV_64F);
     
-    cv::Mat frame_pose = cv::Mat::eye(4, 4, CV_64F);
-    cv::Mat gt_pose = cv::Mat::eye(4, 4, CV_64F);
+    cv::Mat frame_pose = cv::Mat::eye(4, 4, CV_64F); //world 기준 camera pose
+    cv::Mat gt_pose = cv::Mat::eye(4, 4, CV_64FC1);
 
     cv::Mat currImage_l, currImage_r;
     cv::Mat prevImage_l, prevImage_r;
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
         prevPoints_l  = currPoints_l;
 
         cv::Vec3f rotation_euler = rotationMatrixToEulerAngles(rotation);
-        cv::Mat rigid_body_transformation;
+        cv::Mat rigid_body_transformation; //relative pose
 
         // if the rotation is reasonable integrate the visual odometry to the current pose
         if(abs(rotation_euler[1])<0.1 && abs(rotation_euler[0])<0.1 && abs(rotation_euler[2])<0.1)
@@ -103,11 +103,26 @@ int main(int argc, char **argv)
         visualizeTrajectory(traj, frame_pose, points3D_t0, inliers, cv::Scalar(255, 255, 0));
 
         //GT
+        cv::Mat prev_pose = gt_pose.clone();
         gt_pose = readGTPose("/home/cona/Downloads/dataset/data_odometry_gray/data_odometry_poses/dataset/poses/00.txt", numFrame);
         visualizeTrajectory(traj, gt_pose, cv::Mat(), cv::Mat(), cv::Scalar(0, 0, 255) );
 
+        //calculate error
+        double r_err, t_err;
+        cv::Mat gt_diff = prev_pose.inv()*gt_pose;
+        std::cout << gt_diff << std::endl;
+        std::cout << rigid_body_transformation << std::endl;
+        r_err = calculateRotationError(gt_diff(cv::Rect(0,0,3,3)), rigid_body_transformation(cv::Rect(0,0,3,3)));
+        t_err = calculateTranslationError(gt_diff.rowRange(0,3).colRange(3,4), rigid_body_transformation.rowRange(0,3).colRange(3,4));
+        
+        std::cout << "frame" << numFrame-1 << ", frame" << numFrame << std::endl;
+        std::cout << "rot_error(degree): " << r_err << std::endl;
+        std::cout << "tr_error(m): " << t_err << std::endl;
+        std::cout << "" << std::endl;
+
         // video_trajectory.write(traj);
         // video_tracking.write(image_tracking);
+        
         cv::waitKey(1);
     }
 

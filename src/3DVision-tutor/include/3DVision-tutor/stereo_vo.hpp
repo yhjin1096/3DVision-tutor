@@ -270,7 +270,7 @@ cv::Mat readGTPose(const std::string& path, int index)
 {
     std::ifstream file(path);
     std::string line, word;
-    cv::Mat gt_pose = cv::Mat::zeros(4, 4, CV_64F);
+    cv::Mat gt_pose = cv::Mat::eye(4, 4, CV_64F);
     int count = 0;
 
     if(file.is_open())
@@ -416,4 +416,31 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
     }
     return cv::Vec3f(x, y, z);
      
+}
+
+inline double calculateRotationError(const cv::Mat& R_gt, const cv::Mat& R_est) {
+    // Calculate the difference rotation matrix
+    cv::Mat R_diff = R_gt.t() * R_est;
+
+    // Trace of R_diff
+    double trace = R_diff.at<double>(0, 0) + R_diff.at<double>(1, 1) + R_diff.at<double>(2, 2);
+
+    // Calculate the rotation error in radians
+    // axis-angle roation(rodrigues) error
+    double theta = acos(std::max(std::min((trace - 1) / 2.0, 1.0), -1.0));
+
+    // Convert radians to degrees
+    double theta_deg = theta * (180.0 / CV_PI);
+
+    return theta_deg;
+}
+
+inline double calculateTranslationError(const cv::Mat& t_gt, const cv::Mat& t_est)
+{
+    double error;
+
+    cv::Mat t_diff = t_gt - t_est;
+    error = cv::norm(t_diff);
+
+    return error;
 }
