@@ -93,7 +93,7 @@ void odometryCalculation(cv::Mat& projMatrl, cv::Mat& projMatrr,
       bool useExtrinsicGuess = true;
       int flags =cv::SOLVEPNP_ITERATIVE;
       
-      cv::solvePnPRansac( points3D_t0, pointsLeft_t0, intrinsic_matrix, distCoeffs, rvec, translation,
+      cv::solvePnPRansac( points3D_t0, pointsLeft_t1, intrinsic_matrix, distCoeffs, rvec, translation,
                           useExtrinsicGuess, iterationsCount, reprojectionError, confidence,
                           inliers, flags );
       
@@ -330,7 +330,7 @@ void integrateOdometry(int frame_i, cv::Mat& rigid_body_transformation, cv::Mat&
                         + (translation_stereo.at<double>(1))*(translation_stereo.at<double>(1))
                         + (translation_stereo.at<double>(2))*(translation_stereo.at<double>(2))) ;
 
-    rigid_body_transformation = rigid_body_transformation.inv();
+    // rigid_body_transformation = rigid_body_transformation.inv();
     
     // if ((scale>0.1)&&(translation_stereo.at<double>(2) > translation_stereo.at<double>(0)) && (translation_stereo.at<double>(2) > translation_stereo.at<double>(1))) 
     if (scale > 0.05 && scale < 10) 

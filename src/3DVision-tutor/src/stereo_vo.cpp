@@ -43,7 +43,8 @@ int main(int argc, char **argv)
     cv::Mat inliers;
     cv::Mat points3D_t0, points4D_t0;
     
-
+    // cv::VideoWriter video_trajectory("trajectory.avi", cv::VideoWriter::fourcc('M','J','P','G'), 25, cv::Size(1000,1000));
+    // cv::VideoWriter video_tracking("tracking.avi"  , cv::VideoWriter::fourcc('M','J','P','G'), 25, prevImage_c_l.size());
     for(int numFrame = 1; numFrame < num_images; numFrame++)
     {
         std::vector<cv::Point3f> points3d;
@@ -70,7 +71,7 @@ int main(int argc, char **argv)
                        currPoints_r,
                        image_tracking);
         
-        cv::triangulatePoints( projMat_l,  projMat_r,  currPoints_l, currPoints_r,  points4D_t0);
+        cv::triangulatePoints( projMat_l,  projMat_r,  prevPoints_l, prevPoints_r,  points4D_t0);
         cv::convertPointsFromHomogeneous(points4D_t0.t(), points3D_t0);
         // Mat2Vec(points3D_t0, points3d);
         odometryCalculation(projMat_l, projMat_r, 
@@ -98,7 +99,8 @@ int main(int argc, char **argv)
         }
 
         visualizeTrajectory(traj, frame_pose, points3D_t0, inliers );
-
+        // video_trajectory.write(traj);
+        // video_tracking.write(image_tracking);
         cv::waitKey(1);
     }
 
