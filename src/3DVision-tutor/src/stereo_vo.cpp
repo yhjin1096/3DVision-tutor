@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     cv::Mat Rpose = cv::Mat::eye(3, 3, CV_64F);
     
     cv::Mat frame_pose = cv::Mat::eye(4, 4, CV_64F);
-    cv::Mat frame_pose32 = cv::Mat::eye(4, 4, CV_32F);
+    cv::Mat gt_pose = cv::Mat::eye(4, 4, CV_64F);
 
     cv::Mat currImage_l, currImage_r;
     cv::Mat prevImage_l, prevImage_r;
@@ -74,6 +74,8 @@ int main(int argc, char **argv)
         cv::triangulatePoints( projMat_l,  projMat_r,  prevPoints_l, prevPoints_r,  points4D_t0);
         cv::convertPointsFromHomogeneous(points4D_t0.t(), points3D_t0);
         // Mat2Vec(points3D_t0, points3d);
+
+        // relative pose 계산
         odometryCalculation(projMat_l, projMat_r, 
                             prevPoints_l, currPoints_l,
                             points3D_t0, rotation, translation, inliers);
@@ -98,7 +100,12 @@ int main(int argc, char **argv)
             std::cout << "Too large rotation"  << std::endl;
         }
 
-        visualizeTrajectory(traj, frame_pose, points3D_t0, inliers );
+        visualizeTrajectory(traj, frame_pose, points3D_t0, inliers, cv::Scalar(255, 255, 0));
+
+        //GT
+        gt_pose = readGTPose("/home/cona/Downloads/dataset/data_odometry_gray/data_odometry_poses/dataset/poses/00.txt", numFrame);
+        visualizeTrajectory(traj, gt_pose, cv::Mat(), cv::Mat(), cv::Scalar(0, 0, 255) );
+
         // video_trajectory.write(traj);
         // video_tracking.write(image_tracking);
         cv::waitKey(1);

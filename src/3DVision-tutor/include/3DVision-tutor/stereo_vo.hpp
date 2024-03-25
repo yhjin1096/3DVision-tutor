@@ -5,6 +5,7 @@
 #include "opencv2/calib3d/calib3d.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <ctype.h>
 #include <algorithm>
 #include <iterator>
@@ -265,15 +266,52 @@ inline void CountImages(int &num_images, const std::string &path)
 }
 
 
+cv::Mat readGTPose(const std::string& path, int index)
+{
+    std::ifstream file(path);
+    std::string line, word;
+    cv::Mat gt_pose = cv::Mat::zeros(4, 4, CV_64F);
+    int count = 0;
 
+    if(file.is_open())
+    {
+        while(getline(file, line))
+        {
+            int i = 0, j = 0;
+
+            std::stringstream ss(line);
+            while(getline(ss, word, ' '))
+            {
+                gt_pose.at<double>(j,i) = std::stod(word);
+                i++;
+                if(i==4)
+                {
+                    i=0;
+                    j++;
+                }
+            }
+            if(count == index)
+                break;
+            count++;
+        }
+        file.close();
+        return gt_pose;
+    }
+    else
+    {
+        std::cout << "file not found" << std::endl;
+        exit(0);
+    }
+};
 
 void visualizeTrajectory(cv::Mat& traj,
                          cv::Mat& frame_pose,
-                         cv::Mat& points3D_t0,
-                         cv::Mat& inliers){
+                         const cv::Mat& points3D_t0,
+                         const cv::Mat& inliers,
+                         const cv::Scalar& traj_color){
     
     int x = int(frame_pose.at<double>(0,3)) + 500;
-    int y = int(frame_pose.at<double>(2,3)) + 700;
+    int y = int(frame_pose.at<double>(2,3)) + 400;
     
     cv::Mat addup = (cv::Mat_<double>(1, 4) << 0, 0, 0, 1);
     cv::Mat I = (cv::Mat_<double>(3, 3) << 1,0,0,
@@ -288,8 +326,6 @@ void visualizeTrajectory(cv::Mat& traj,
     int j;
 
     for (int i = 0; i < inliers.size().height; i++){
-        
-
         j = inliers.at<int>(0, i);
         
         // cout << i << " " << j  << endl;
@@ -300,10 +336,10 @@ void visualizeTrajectory(cv::Mat& traj,
 
         cv::hconcat(I, translation, rigid_body_transformation);
         cv::vconcat(rigid_body_transformation, addup, rigid_body_transformation);
-        points3D_world =  frame_pose*rigid_body_transformation.inv();
+        points3D_world =  frame_pose*rigid_body_transformation;
 
         int x_point = int(points3D_world.at<double>(0,3)) + 500;
-        int y_point = int(points3D_world.at<double>(2,3)) + 700;
+        int y_point = int(points3D_world.at<double>(2,3)) + 400;
 
         cv::circle(traj, cv::Point(x_point, y_point) ,0.5, CV_RGB(0,100,100), 0.5);
 
@@ -311,7 +347,7 @@ void visualizeTrajectory(cv::Mat& traj,
 
 
 
-    cv::circle(traj, cv::Point(x, y) ,1, CV_RGB(0,255,255), 2);
+    cv::circle(traj, cv::Point(x, y) ,1, traj_color, 2);
     // rectangle( traj, Point(10, 30), Point(550, 50), CV_RGB(0,0,0), cv::FILLED);
 
     cv::imshow( "Trajectory", traj );
@@ -330,7 +366,7 @@ void integrateOdometry(int frame_i, cv::Mat& rigid_body_transformation, cv::Mat&
                         + (translation_stereo.at<double>(1))*(translation_stereo.at<double>(1))
                         + (translation_stereo.at<double>(2))*(translation_stereo.at<double>(2))) ;
 
-    // rigid_body_transformation = rigid_body_transformation.inv();
+    rigid_body_transformation = rigid_body_transformation.inv();
     
     // if ((scale>0.1)&&(translation_stereo.at<double>(2) > translation_stereo.at<double>(0)) && (translation_stereo.at<double>(2) > translation_stereo.at<double>(1))) 
     if (scale > 0.05 && scale < 10) 
