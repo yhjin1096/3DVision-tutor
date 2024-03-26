@@ -4,6 +4,9 @@
 #include "opencv2/features2d/features2d.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
+#include <opencv2/viz.hpp>
+#include <opencv2/viz/widgets.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <ctype.h>
@@ -235,6 +238,31 @@ void matchAndTrack(cv::Mat& image_l_0, cv::Mat& image_r_0,
 
     visualizeTracking(image_tracking, image_l_1, points_l_0, points_l_1);
 
+}
+
+void removeInvDepth(std::vector<cv::Point2f>&  points_l_0, 
+                   std::vector<cv::Point2f>&  points_r_0, 
+                   std::vector<cv::Point2f>&  points_l_1, 
+                   std::vector<cv::Point2f>&  points_r_1,
+                   cv::Mat& points3D_t0)
+{
+    std::vector<bool> status;
+    cv::Mat tmp;
+    for(int i = 0; i < points3D_t0.rows; i++)
+    {
+        if(points3D_t0.at<float>(i,2) < 0)
+            status.push_back(false);
+        else
+        {
+            status.push_back(true);
+            tmp.push_back(points3D_t0.row(i));
+        }
+    }
+    removeInvalidPoints(points_l_0, status);
+    removeInvalidPoints(points_l_1, status);
+    removeInvalidPoints(points_r_0, status);
+    removeInvalidPoints(points_r_1, status);
+    points3D_t0 = tmp.clone();
 }
 
 const std::string imageExtensions[] = {".jpg", ".jpeg", ".png", ".gif", ".bmp"};
