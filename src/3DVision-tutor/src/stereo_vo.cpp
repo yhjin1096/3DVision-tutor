@@ -6,12 +6,12 @@ int main(int argc, char **argv)
 {
     double focal = 718.8560;
     cv::Point2d pp(607.1928, 185.2157);
-    cv::Mat projMat_l = (cv::Mat_<float>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, 4.538225000000e+01,
-                                                0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, -1.130887000000e-01,
-                                                0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 3.779761000000e-03);
-    cv::Mat projMat_r = (cv::Mat_<float>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, -3.372877000000e+02,
-                                                0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 2.369057000000e+00,
-                                                0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 4.915215000000e-03);
+    cv::Mat projMat_l = (cv::Mat_<float>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, 0.000000000000e+00,
+                                                0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00,
+                                                0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
+    cv::Mat projMat_r = (cv::Mat_<float>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, -3.861448000000e+02,
+                                                0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00,
+                                                0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
     
     cv::Mat traj = cv::Mat::zeros(1000, 1000, CV_8UC3);
 
@@ -46,8 +46,8 @@ int main(int argc, char **argv)
     // cv::VideoWriter video_trajectory("trajectory.avi", cv::VideoWriter::fourcc('M','J','P','G'), 25, cv::Size(1000,1000));
     // cv::VideoWriter video_tracking("tracking.avi"  , cv::VideoWriter::fourcc('M','J','P','G'), 25, prevImage_c_l.size());
 
-    cv::viz::Viz3d myWindow("Coordinate Frame");
-    myWindow.setWindowSize(cv::Size(640,480));
+    // cv::viz::Viz3d myWindow("Coordinate Frame");
+    // myWindow.setWindowSize(cv::Size(640,480));
 
     for(int numFrame = 1; numFrame < num_images; numFrame++)
     {
@@ -131,26 +131,26 @@ int main(int argc, char **argv)
         // video_tracking.write(image_tracking);
 
         //visualize 3d pose
-        cv::Affine3f world_pose, gt_curr_pose, esti_curr_pose;
-        world_pose.rotation(cv::Mat::eye(3,3,CV_32F));
-        world_pose.translation(cv::Vec3f(0,0,0));
-        gt_curr_pose.rotation(cv::Mat_<float>(gt_diff(cv::Rect(0,0,3,3))));
-        gt_curr_pose.translation(cv::Mat_<float>(gt_diff.rowRange(0,3).colRange(3,4)));
-        esti_curr_pose.rotation(cv::Mat_<float>(rigid_body_transformation(cv::Rect(0,0,3,3))));
-        esti_curr_pose.translation(cv::Mat_<float>(rigid_body_transformation.rowRange(0,3).colRange(3,4)));
+        // cv::Affine3f world_pose, gt_curr_pose, esti_curr_pose;
+        // world_pose.rotation(cv::Mat::eye(3,3,CV_32F));
+        // world_pose.translation(cv::Vec3f(0,0,0));
+        // gt_curr_pose.rotation(cv::Mat_<float>(gt_diff(cv::Rect(0,0,3,3))));
+        // gt_curr_pose.translation(cv::Mat_<float>(gt_diff.rowRange(0,3).colRange(3,4)));
+        // esti_curr_pose.rotation(cv::Mat_<float>(rigid_body_transformation(cv::Rect(0,0,3,3))));
+        // esti_curr_pose.translation(cv::Mat_<float>(rigid_body_transformation.rowRange(0,3).colRange(3,4)));
     
-        cv::viz::WText3D world_text("world", cv::Point3d(0,0,0), 0.1, true, cv::viz::Color::black());
-        cv::viz::WText3D gt_text("gt", cv::Point3d(gt_curr_pose.translation()(0),gt_curr_pose.translation()(1),gt_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::red());
-        cv::viz::WText3D esti_text("esti", cv::Point3d(esti_curr_pose.translation()(0),esti_curr_pose.translation()(1),esti_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::cyan());
+        // cv::viz::WText3D world_text("world", cv::Point3d(0,0,0), 0.1, true, cv::viz::Color::black());
+        // cv::viz::WText3D gt_text("gt", cv::Point3d(gt_curr_pose.translation()(0),gt_curr_pose.translation()(1),gt_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::red());
+        // cv::viz::WText3D esti_text("esti", cv::Point3d(esti_curr_pose.translation()(0),esti_curr_pose.translation()(1),esti_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::cyan());
 
-        myWindow.showWidget("world_text", world_text);
-        myWindow.showWidget("gt_text", gt_text);
-        myWindow.showWidget("esti_text", esti_text);
-        myWindow.showWidget(std::to_string(0), cv::viz::WCoordinateSystem(), world_pose);
-        myWindow.showWidget("gt" + std::to_string(numFrame-1), cv::viz::WCoordinateSystem(), gt_curr_pose);
-        myWindow.showWidget("esti" + std::to_string(numFrame-1), cv::viz::WCoordinateSystem(), esti_curr_pose);
-        myWindow.spinOnce(500, false);
-        myWindow.removeAllWidgets();
+        // myWindow.showWidget("world_text", world_text);
+        // myWindow.showWidget("gt_text", gt_text);
+        // myWindow.showWidget("esti_text", esti_text);
+        // myWindow.showWidget(std::to_string(0), cv::viz::WCoordinateSystem(), world_pose);
+        // myWindow.showWidget("gt" + std::to_string(numFrame-1), cv::viz::WCoordinateSystem(), gt_curr_pose);
+        // myWindow.showWidget("esti" + std::to_string(numFrame-1), cv::viz::WCoordinateSystem(), esti_curr_pose);
+        // myWindow.spinOnce(500, false);
+        // myWindow.removeAllWidgets();
         cv::waitKey(1);
     }
 

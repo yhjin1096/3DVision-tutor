@@ -17,6 +17,8 @@ set(OpenCV_DIR /home/cona/open_library/opencv-3.4.16/install/share/OpenCV)
 
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Ceres REQUIRED)
+
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES 3DVision-tutor
@@ -29,10 +31,12 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${Eigen3_INCLUDE_DIR}
+  ${CERES_INCLUDE_DIRS}
 )
 link_libraries(
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${CERES_LIBRARIES}
 )
 
 add_executable(Triangulation src/Triangulation.cpp)
@@ -40,3 +44,4 @@ add_executable(PoseEstimation src/PoseEstimation.cpp)
 add_executable(Stella_ORBExtraction src/Stella_ORBExtraction.cpp)
 add_executable(mono_vo src/mono_vo.cpp)
 add_executable(stereo_vo src/stereo_vo.cpp)
+add_executable(motion_only_ba src/motion_only_ba.cpp)

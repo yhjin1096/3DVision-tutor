@@ -100,7 +100,8 @@
         "filesystem": "cpp",
         "*.ipp": "cpp",
         "geometry": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "csetjmp": "cpp"
     },
     "python.autoComplete.extraPaths": [
         "/opt/ros/noetic/lib/python3/dist-packages"

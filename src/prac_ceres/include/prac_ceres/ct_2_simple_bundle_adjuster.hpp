@@ -26,10 +26,11 @@ class BALProblem
             FscanfOrDie(fptr, "%d", &num_observations_); 
             num_parameters_ = 9 * num_cameras_ + 3 * num_points_; 
 
-            point_index_ = std::vector<int>(num_observations_);// 73
-            camera_index_ = std::vector<int>(num_observations_);// 11032
-            observations_ = std::vector<double>(2 * num_observations_);// 46122*2 -> pixel_x, pixel_y
-            parameters_ = std::vector<double>(num_parameters_);// 33753 // camera rotation(rodrigues 3 vector), tr_x, tr_y, tr_z, focal_length, k1, k2
+            //problem-16-22106-pre.txt
+            point_index_ = std::vector<int>(num_observations_);// 83718
+            camera_index_ = std::vector<int>(num_observations_);// 83718
+            observations_ = std::vector<double>(2 * num_observations_);// 83718*2 -> pixel_x, pixel_y
+            parameters_ = std::vector<double>(num_parameters_);// 9*16 + 3*22106 // camera rotation(rodrigues 3 vector), tr_x, tr_y, tr_z, focal_length, k1, k2
             
             for (int i = 0; i < num_observations_; ++i) {
                 FscanfOrDie(fptr, "%d", &camera_index_[i]);

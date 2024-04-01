@@ -4,10 +4,15 @@
 int main(int argc, char** argv)
 {
     BALProblem bal_problem;
-    bal_problem.LoadFile("/home/cona/Downloads/data");
+    bal_problem.LoadFile("/home/cona/open_library/ceres-solver/data/problem-16-22106-pre.txt");
 
     ceres::Problem problem;
-    for(int i = 1; i < bal_problem.num_observations_; i++)
+    
+    // std::cout << bal_problem.parameters_[bal_problem.num_cameras_*9    ] << ","
+    //             << bal_problem.parameters_[bal_problem.num_cameras_*9 + 1] << ","
+    //             << bal_problem.parameters_[bal_problem.num_cameras_*9 + 2] << std::endl;
+    
+    for(int i = 0; i < bal_problem.num_observations_; i++)
     {
         ceres::CostFunction* cost_function = new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 9, 3>(
                                                 new SnavelyReprojectionError(bal_problem.observations_[2*i], //x
@@ -19,6 +24,8 @@ int main(int argc, char** argv)
         
     }
 
+    
+
     ceres::Solver::Options options;
     options.linear_solver_type = ceres::DENSE_SCHUR;
     options.minimizer_progress_to_stdout = true;
@@ -26,6 +33,8 @@ int main(int argc, char** argv)
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
     std::cout << summary.FullReport() << "\n";
-    
+    // std::cout << bal_problem.parameters_[bal_problem.num_cameras_*9    ] << ","
+    //               << bal_problem.parameters_[bal_problem.num_cameras_*9 + 1] << ","
+    //               << bal_problem.parameters_[bal_problem.num_cameras_*9 + 2] << std::endl;
     return 0;
 }
