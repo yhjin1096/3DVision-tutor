@@ -51,19 +51,42 @@ class Node
         Camera left_cam, right_cam;
         cv::Mat points3D;
         std::vector<double> landmarks;
-        double base_line = 0.5371657188644179;
+        // double base_line = 0.5371657188644179;
+        // double base_line = 0.12;
+        double base_line = 0.119937;
         
         Node()
         {
-            left_cam.projection_Mat = (cv::Mat_<double>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, 0.000000000000e+00,
-                                                               0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00,
-                                                               0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
+            // left_cam.projection_Mat = (cv::Mat_<double>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, 0.000000000000e+00,
+            //                                                    0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00,
+            //                                                    0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
+            // left_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
+
+            // right_cam.projection_Mat = (cv::Mat_<double>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, -3.861448000000e+02,
+            //                                                     0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00,
+            //                                                     0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
+            // right_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
+
+            // left_cam.projection_Mat = (cv::Mat_<double>(3,4) << 480.0, 0.000000000000e+00, 6.395000000000e+02, 0.000000000000e+00,
+            //                                                     0.000000000000e+00, 480.0, 4.790000000000e+02, 0.000000000000e+00,
+            //                                                     0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
+            // left_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
+
+            // right_cam.projection_Mat = (cv::Mat_<double>(3,4) << 480.0, 0.000000000000e+00, 6.395000000000e+02, -57.6,
+            //                                                      0.000000000000e+00, 480.0, 4.790000000000e+02, 0.000000000000e+00,
+            //                                                      0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
+            // right_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
+
+            left_cam.projection_Mat = (cv::Mat_<double>(3,4) << 1080.680207900795, 0.000000000000e+00, 976.9661636352539, 0.000000000000e+00,
+                                                                0.000000000000e+00, 1080.680207900795, 554.1164016723633, 0.000000000000e+00,
+                                                                0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
             left_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
 
-            right_cam.projection_Mat = (cv::Mat_<double>(3,4) << 7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, -3.861448000000e+02,
-                                                                0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00,
-                                                                0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
+            right_cam.projection_Mat = (cv::Mat_<double>(3,4) << 1080.680207900795, 0.000000000000e+00, 976.9661636352539, -129.6135369166627,
+                                                                 0.000000000000e+00, 1080.680207900795, 554.1164016723633, 0.000000000000e+00,
+                                                                 0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
             right_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
+
 
             right_cam.cam_to_world_pose.at<double>(0,3) = base_line;
             right_cam.world_to_cam_pose = right_cam.cam_to_world_pose.inv();
@@ -120,7 +143,7 @@ class Tracker
                           query.left_cam.gray_image, query.right_cam.gray_image,
                           refer.left_cam.keypoints, refer.right_cam.keypoints,
                           query.left_cam.keypoints, query.right_cam.keypoints);
-            
+            std::cout << "after circular matching:" << refer.left_cam.keypoints.size() << std::endl;
             // for(int i = 0; i < refer.left_cam.keypoints.size(); i++)
             // {
             //     cv::Mat refer_left_image = refer.left_cam.image.clone(), refer_right_image = refer.right_cam.image.clone();
@@ -227,6 +250,8 @@ class Tracker
             bool nonmaxSuppression = true;
             cv::FAST(img, keypoints, fast_threshold, nonmaxSuppression);
             cv::KeyPoint::convert(keypoints, points, std::vector<int>());
+            std::cout << "threshold of fast detector: " << fast_threshold << std::endl;
+            std::cout << "before circular matching: " << keypoints.size() << std::endl;
         }
         void deleteUntrackedFeatures(   std::vector<cv::Point2f>& points0, std::vector<cv::Point2f>& points1,
                                 std::vector<cv::Point2f>& points2, std::vector<cv::Point2f>& points3,
@@ -416,6 +441,80 @@ class Tracker
 
 };
 
+class Visualizer
+{
+    public:
+        void visualizeExtract(const Node& node, cv::Mat& viz)
+        {
+            viz = node.left_cam.image.clone();
+            for(int i = 0; i < node.left_cam.keypoints.size(); i++)
+            {
+                cv::circle(viz, node.left_cam.keypoints[i], 4, CV_RGB(0,255,0));
+            }
+            cv::resize(viz,viz,viz.size()/2);
+            cv::imshow("extract", viz);
+        }
+
+        void visualizeTracking(const Node& refer, const Node& query, cv::Mat& viz)
+        {
+            viz = refer.left_cam.image.clone();
+            for(int i = 0; i < refer.left_cam.keypoints.size(); i++)
+            {
+                cv::circle(viz, refer.left_cam.keypoints[i], 2, CV_RGB(0,255,0));
+            }
+            for(int i = 0; i < query.left_cam.keypoints.size(); i++)
+            {
+                cv::circle(viz, query.left_cam.keypoints[i], 2, CV_RGB(0,0,255));
+            }
+            for(int i = 0; i < refer.left_cam.keypoints.size(); i++)
+            {
+                cv::line(viz, refer.left_cam.keypoints[i], query.left_cam.keypoints[i], CV_RGB(0,255,0));
+            }
+            cv::resize(viz,viz,viz.size()/2);
+            cv::imshow("tracking", viz);
+        }
+
+        void visualizeRelative3D(cv::viz::Viz3d& myWindow, const Node& refer, const Node& query, const cv::Mat gt_refer_pose, const cv::Mat gt_query_pose, const int& idx)
+        {   
+            cv::Affine3f world_pose, gt_curr_pose, esti_curr_pose;
+            cv::Mat gt_diff, esti_diff;
+            gt_diff = gt_refer_pose.inv() * gt_query_pose;
+            esti_diff = refer.left_cam.cam_to_world_pose.inv() * query.left_cam.cam_to_world_pose;
+
+            gt_curr_pose.rotation(cv::Mat_<float>(gt_diff(cv::Rect(0,0,3,3))));
+            gt_curr_pose.translation(cv::Mat_<float>(gt_diff.rowRange(0,3).colRange(3,4)));
+            esti_curr_pose.rotation(cv::Mat_<float>(esti_diff(cv::Rect(0,0,3,3))));
+            esti_curr_pose.translation(cv::Mat_<float>(esti_diff.rowRange(0,3).colRange(3,4)));
+
+            cv::viz::WText3D world_text("world", cv::Point3d(0,0,0), 0.1, true, cv::viz::Color::black());
+            cv::viz::WText3D gt_text("gt", cv::Point3d(gt_curr_pose.translation()(0),gt_curr_pose.translation()(1),gt_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::red());
+            cv::viz::WText3D esti_text("esti", cv::Point3d(esti_curr_pose.translation()(0),esti_curr_pose.translation()(1),esti_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::cyan());
+
+            // for(int i = 0; i < refer.points3D.rows; i++)
+            // {
+            //     cv::Mat point = (cv::Mat_<double>(4,1) << refer.points3D.row(i).at<float>(0),
+            //                                               refer.points3D.row(i).at<float>(1),
+            //                                               refer.points3D.row(i).at<float>(2),
+            //                                               1.0);
+            //     cv::Mat world_point = query.left_cam.world_to_cam_pose * point;
+            //     cv::viz::WSphere point_wiz(cv::Point3d(world_point.at<double>(0), world_point.at<double>(1), world_point.at<double>(2)),
+            //                               0.1, 10, cv::viz::Color::red());
+            //     myWindow.showWidget("point" + std::to_string(i), point_wiz);
+            // }
+
+
+
+            myWindow.showWidget("world_text", world_text);
+            // myWindow.showWidget("gt_text", gt_text);
+            myWindow.showWidget("esti_text", esti_text);
+            myWindow.showWidget(std::to_string(0), cv::viz::WCoordinateSystem(), world_pose);
+            // myWindow.showWidget("gt" + std::to_string(idx-1), cv::viz::WCoordinateSystem(), gt_curr_pose);
+            myWindow.showWidget("esti" + std::to_string(idx-1), cv::viz::WCoordinateSystem(), esti_curr_pose);
+            myWindow.spinOnce(3000, false);
+            myWindow.removeAllWidgets();
+        }
+};
+
 struct SnavelyReprojectionError
 {
     SnavelyReprojectionError(double focal, double cx, double cy,
@@ -481,7 +580,7 @@ inline void CountImages(int &num_images, const std::string &path)
             }
         }
 
-        std::cout << "Number of image files in the folder: " << num_images << std::endl;
+        // std::cout << "Number of image files in the folder: " << num_images << std::endl;
     }
     catch (const std::exception &ex)
     {
@@ -547,43 +646,4 @@ inline double calculateTranslationError(const cv::Mat& t_gt, const cv::Mat& t_es
     error = cv::norm(t_diff);
 
     return error;
-}
-inline void visualizeRelative3D(cv::viz::Viz3d& myWindow, const Node& refer, const Node& query, const cv::Mat gt_refer_pose, const cv::Mat gt_query_pose, const int& idx)
-{   
-    cv::Affine3f world_pose, gt_curr_pose, esti_curr_pose;
-    cv::Mat gt_diff, esti_diff;
-    gt_diff = gt_refer_pose.inv() * gt_query_pose;
-    esti_diff = refer.left_cam.cam_to_world_pose.inv() * query.left_cam.cam_to_world_pose;
-
-    gt_curr_pose.rotation(cv::Mat_<float>(gt_diff(cv::Rect(0,0,3,3))));
-    gt_curr_pose.translation(cv::Mat_<float>(gt_diff.rowRange(0,3).colRange(3,4)));
-    esti_curr_pose.rotation(cv::Mat_<float>(esti_diff(cv::Rect(0,0,3,3))));
-    esti_curr_pose.translation(cv::Mat_<float>(esti_diff.rowRange(0,3).colRange(3,4)));
-
-    cv::viz::WText3D world_text("world", cv::Point3d(0,0,0), 0.1, true, cv::viz::Color::black());
-    cv::viz::WText3D gt_text("gt", cv::Point3d(gt_curr_pose.translation()(0),gt_curr_pose.translation()(1),gt_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::red());
-    cv::viz::WText3D esti_text("esti", cv::Point3d(esti_curr_pose.translation()(0),esti_curr_pose.translation()(1),esti_curr_pose.translation()(2)), 0.1, true, cv::viz::Color::cyan());
-
-    // for(int i = 0; i < refer.points3D.rows; i++)
-    // {
-    //     cv::Mat point = (cv::Mat_<double>(4,1) << refer.points3D.row(i).at<float>(0),
-    //                                               refer.points3D.row(i).at<float>(1),
-    //                                               refer.points3D.row(i).at<float>(2),
-    //                                               1.0);
-    //     cv::Mat world_point = query.left_cam.world_to_cam_pose * point;
-    //     cv::viz::WSphere point_wiz(cv::Point3d(world_point.at<double>(0), world_point.at<double>(1), world_point.at<double>(2)),
-    //                               0.1, 10, cv::viz::Color::red());
-    //     myWindow.showWidget("point" + std::to_string(i), point_wiz);
-    // }
-
-
-
-    myWindow.showWidget("world_text", world_text);
-    myWindow.showWidget("gt_text", gt_text);
-    myWindow.showWidget("esti_text", esti_text);
-    myWindow.showWidget(std::to_string(0), cv::viz::WCoordinateSystem(), world_pose);
-    myWindow.showWidget("gt" + std::to_string(idx-1), cv::viz::WCoordinateSystem(), gt_curr_pose);
-    myWindow.showWidget("esti" + std::to_string(idx-1), cv::viz::WCoordinateSystem(), esti_curr_pose);
-    myWindow.spinOnce(10, false);
-    myWindow.removeAllWidgets();
 }
