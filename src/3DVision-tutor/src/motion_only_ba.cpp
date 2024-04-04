@@ -4,8 +4,8 @@ int main(int argc, char **argv)
 {
     // std::string left_path = "/home/cona/Downloads/dataset/data_odometry_gray/dataset/sequences/00/image_0/";
     // std::string right_path = "/home/cona/Downloads/dataset/data_odometry_gray/dataset/sequences/00/image_1/";
-    std::string left_path = "/home/cona/yhj/data/bk2/left/";
-    std::string right_path = "/home/cona/yhj/data/bk2/right/";
+    std::string left_path = "/home/cona/yhj/data/bk3_HD/left/";
+    std::string right_path = "/home/cona/yhj/data/bk3_HD/right/";
     std::vector<cv::Mat> gt_poses;
     int num_images = 0;
     CountImages(num_images, left_path);
@@ -20,7 +20,6 @@ int main(int argc, char **argv)
     {
         ceres::Problem problem;
         Node refer, query;
-        cv::Mat viz_track, viz_extract;
 
         refer.left_cam.loadImage(left_path + cv::format("%06d.png", i));
         refer.right_cam.loadImage(right_path + cv::format("%06d.png", i));
@@ -89,7 +88,8 @@ int main(int argc, char **argv)
         std::cout << query.left_cam.cam_to_world_pose << std::endl;
         std::cout << "" << std::endl;
         
-        visualizer.visualizeExtract(refer, viz_extract);
+        cv::Mat viz_track, viz_extract;
+        visualizer.visualizeExtractAll(refer, query, viz_extract);
         visualizer.visualizeTracking(refer, query, viz_track);
         visualizer.visualizeRelative3D(myWindow, refer, query, gt_poses[i], gt_poses[i+1], i);
         cv::waitKey(0);

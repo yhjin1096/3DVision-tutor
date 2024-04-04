@@ -77,13 +77,13 @@ class Node
             //                                                      0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
             // right_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
 
-            left_cam.projection_Mat = (cv::Mat_<double>(3,4) << 1080.680207900795, 0.000000000000e+00, 976.9661636352539, 0.000000000000e+00,
-                                                                0.000000000000e+00, 1080.680207900795, 554.1164016723633, 0.000000000000e+00,
+            left_cam.projection_Mat = (cv::Mat_<double>(3,4) << 535.9662532374153, 0.000000000000e+00, 650.3713150024414, 0.000000000000e+00,
+                                                                0.000000000000e+00, 535.9662532374153, 367.6320648193359, 0.000000000000e+00,
                                                                 0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
             left_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
 
-            right_cam.projection_Mat = (cv::Mat_<double>(3,4) << 1080.680207900795, 0.000000000000e+00, 976.9661636352539, -129.6135369166627,
-                                                                 0.000000000000e+00, 1080.680207900795, 554.1164016723633, 0.000000000000e+00,
+            right_cam.projection_Mat = (cv::Mat_<double>(3,4) << 535.9662532374153, 0.000000000000e+00, 650.3713150024414, -64.28218194632677,
+                                                                 0.000000000000e+00, 535.9662532374153, 367.6320648193359, 0.000000000000e+00,
                                                                  0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00);
             right_cam.intrinsic_Mat = left_cam.projection_Mat(cv::Rect(0,0,3,3)).clone();
 
@@ -444,6 +444,32 @@ class Tracker
 class Visualizer
 {
     public:
+        void visualizeExtractAll(const Node& refer, const Node& query, cv::Mat& viz)
+        {
+            cv::Mat refer_left = refer.left_cam.image.clone();
+            cv::Mat refer_right = refer.right_cam.image.clone();
+            cv::Mat query_left = query.left_cam.image.clone();
+            cv::Mat query_right = query.right_cam.image.clone();
+
+            for(int i = 0; i < refer.left_cam.keypoints.size(); i++)
+                cv::circle(refer_left, refer.left_cam.keypoints[i], 4, CV_RGB(0,255,0));
+            
+            for(int i = 0; i < refer.right_cam.keypoints.size(); i++)
+                cv::circle(refer_right, refer.right_cam.keypoints[i], 4, CV_RGB(0,255,0));
+            
+            for(int i = 0; i < query.left_cam.keypoints.size(); i++)
+                cv::circle(query_left, query.left_cam.keypoints[i], 4, CV_RGB(0,255,0));
+            
+            for(int i = 0; i < query.right_cam.keypoints.size(); i++)
+                cv::circle(query_right, query.right_cam.keypoints[i], 4, CV_RGB(0,255,0));
+            
+            cv::Mat refer_stereo, query_stereo;
+            cv::hconcat(refer_left, refer_right, refer_stereo);
+            cv::hconcat(query_left, query_right, query_stereo);
+            cv::vconcat(query_stereo, refer_stereo, viz);
+            cv::resize(viz,viz,viz.size()/2);
+            cv::imshow("extract_all", viz);
+        }
         void visualizeExtract(const Node& node, cv::Mat& viz)
         {
             viz = node.left_cam.image.clone();
