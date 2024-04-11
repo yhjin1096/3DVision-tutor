@@ -12,30 +12,6 @@
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
-const std::string imageExtensions[] = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
-
-inline void CountImages(int& num_images, const std::string& path)
-{
-    try {
-        // 지정된 폴더 내의 모든 파일에 대해 반복
-        for (const auto& entry : std::filesystem::directory_iterator(path)) {
-            // 디렉토리인 경우 건너뛰기
-            if (std::filesystem::is_directory(entry.path()))
-                continue;
-
-            // 이미지 파일인 경우 개수 증가
-            for (const std::string& ext : imageExtensions) {
-                if (entry.path().extension() == ext)
-                    num_images++;
-            }
-        }
-
-        std::cout << "Number of image files in the folder: " << num_images << std::endl;
-    }
-    catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << std::endl;
-    }
-}
 
 namespace util {
 
@@ -868,6 +844,18 @@ class ORBExtractor
             }
         }
 
+        void compute_orb_descriptors(const cv::Mat& image, const std::vector<cv::KeyPoint>& keypts, cv::Mat& descriptors) const {
+            descriptors = cv::Mat::zeros(keypts.size(), 32, CV_8UC1);
+
+            for (unsigned int i = 0; i < keypts.size(); ++i) {
+                compute_orb_descriptor(keypts.at(i), image, descriptors.ptr(i));
+            }
+        }
+
+        void compute_orb_descriptor(const cv::KeyPoint& keypt, const cv::Mat& image, uchar* desc) const {
+            orb_impl_.compute_orb_descriptor(keypt, image, desc);
+        }
+
     private:
         const orb_params* orb_params_;
         static constexpr unsigned int orb_patch_radius_ = 19;
@@ -1042,5 +1030,4 @@ class ORBExtractor
         float ic_angle(const cv::Mat& image, const cv::Point2f& point) const {
             return orb_impl_.ic_angle(image, point);
         }
-
 };
