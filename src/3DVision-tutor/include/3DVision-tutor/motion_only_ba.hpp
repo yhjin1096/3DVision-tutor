@@ -26,8 +26,10 @@
 class Camera
 {
     public:
-        double focal = 718.8560;
-        cv::Point2d pp = cv::Point2d(607.1928, 185.2157);
+        // double focal = 718.8560;
+        // cv::Point2d pp = cv::Point2d(607.1928, 185.2157);
+        double focal = 535.9662532374153;
+        cv::Point2d pp = cv::Point2d(650.3713150024414, 367.6320648193359);
         cv::Mat image, gray_image;
         cv::Mat intrinsic_Mat, projection_Mat;
         cv::Mat rot_rodrigues = cv::Mat::zeros(3, 1, CV_64F), translation = cv::Mat::zeros(3, 1, CV_64F);
@@ -35,8 +37,10 @@ class Camera
         cv::Mat world_to_cam_pose = cv::Mat::eye(4, 4, CV_64F); //cam 기준 world
         cv::Mat cam_to_world_pose = cv::Mat::eye(4, 4, CV_64F); //world 기준 cam
 
+        std::vector<cv::KeyPoint> keypts;
         std::vector<cv::Point2f> keypoints;
         std::vector<cv::Point2d> keypoints_d;
+        cv::Mat descriptors;
 
         void loadImage(std::string path)
         {
@@ -109,14 +113,14 @@ class Node
                 right_cam.keypoints_d.push_back(right_cam.keypoints[i]);
             }
         }
-        void updatePose()
+        void updatePoseAnd3DPoints()
         {
             left_cam.rot_rodrigues.at<double>(0) = left_cam.ceres_cam_pose[0];
             left_cam.rot_rodrigues.at<double>(1) = left_cam.ceres_cam_pose[1];
             left_cam.rot_rodrigues.at<double>(2) = left_cam.ceres_cam_pose[2];
-            left_cam.translation.at<double>(0) = left_cam.ceres_cam_pose[0];
-            left_cam.translation.at<double>(1) = left_cam.ceres_cam_pose[1];
-            left_cam.translation.at<double>(2) = left_cam.ceres_cam_pose[2];
+            left_cam.translation.at<double>(0) = left_cam.ceres_cam_pose[3];
+            left_cam.translation.at<double>(1) = left_cam.ceres_cam_pose[4];
+            left_cam.translation.at<double>(2) = left_cam.ceres_cam_pose[5];
 
             cv::Mat rotation, rigid_body_transformation;
             cv::Mat addup = (cv::Mat_<double>(1, 4) << 0, 0, 0, 1);
@@ -127,6 +131,30 @@ class Node
 
             left_cam.world_to_cam_pose = rigid_body_transformation;
             left_cam.cam_to_world_pose = left_cam.world_to_cam_pose.inv();
+
+            right_cam.rot_rodrigues.at<double>(0) = right_cam.ceres_cam_pose[0];
+            right_cam.rot_rodrigues.at<double>(1) = right_cam.ceres_cam_pose[1];
+            right_cam.rot_rodrigues.at<double>(2) = right_cam.ceres_cam_pose[2];
+            right_cam.translation.at<double>(0) = right_cam.ceres_cam_pose[3];
+            right_cam.translation.at<double>(1) = right_cam.ceres_cam_pose[4];
+            right_cam.translation.at<double>(2) = right_cam.ceres_cam_pose[5];
+
+            cv::Mat rotation2, rigid_body_transformation2;
+            cv::Mat addup2 = (cv::Mat_<double>(1, 4) << 0, 0, 0, 1);
+            cv::Rodrigues(right_cam.rot_rodrigues, rotation2);
+
+            cv::hconcat(rotation2, right_cam.translation, rigid_body_transformation2);
+            cv::vconcat(rigid_body_transformation2, addup2, rigid_body_transformation2);
+
+            right_cam.world_to_cam_pose = rigid_body_transformation2;
+            right_cam.cam_to_world_pose = right_cam.world_to_cam_pose.inv();
+
+            for(int i = 0; i < points3D.rows; i++)
+            {
+                points3D.at<cv::Vec3f>(i,0)(0) = landmarks[i*3];
+                points3D.at<cv::Vec3f>(i,0)(1) = landmarks[i*3+1];
+                points3D.at<cv::Vec3f>(i,0)(2) = landmarks[i*3+2];
+            }
         };
 };
 
@@ -136,6 +164,19 @@ class Tracker
         void extractKeypoints(Camera& cam)
         {
             featureDetectionFAST(cam.gray_image, cam.keypoints);
+        };
+        void extractKeypointsORB(Camera& cam)
+        {
+            // ORB 특징 검출기 생성
+            cv::Ptr<cv::Feature2D> orb = cv::ORB::create(3000);
+
+            // 특징 검출
+            orb->detectAndCompute(cam.gray_image, cv::noArray(), cam.keypts, cam.descriptors);
+            cv::KeyPoint::convert(cam.keypts, cam.keypoints, std::vector<int>());
+            
+            // descriptor 검출
+            cv::Ptr<cv::DescriptorExtractor> descriptor = cv::ORB::create();
+            descriptor->compute(cam.image, cam.keypts, cam.descriptors);
         };
         void trackKeypoints(Node& refer, Node& query)
         {
@@ -169,6 +210,7 @@ class Tracker
             cv::triangulatePoints(node.left_cam.projection_Mat,  node.right_cam.projection_Mat,
                                   node.left_cam.keypoints, node.right_cam.keypoints, points4D);
             cv::convertPointsFromHomogeneous(points4D.t(), node.points3D);
+            
             cv::Point3f tmp;
             for(int i = 0; i < node.points3D.rows; i++)
             {
@@ -524,7 +566,7 @@ class Visualizer
             //                                               1.0);
             //     cv::Mat world_point = query.left_cam.world_to_cam_pose * point;
             //     cv::viz::WSphere point_wiz(cv::Point3d(world_point.at<double>(0), world_point.at<double>(1), world_point.at<double>(2)),
-            //                               0.1, 10, cv::viz::Color::red());
+            //                               0.01, 10, cv::viz::Color::red());
             //     myWindow.showWidget("point" + std::to_string(i), point_wiz);
             // }
 

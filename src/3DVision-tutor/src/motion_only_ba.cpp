@@ -4,8 +4,8 @@ int main(int argc, char **argv)
 {
     // std::string left_path = "/home/cona/Downloads/dataset/data_odometry_gray/dataset/sequences/00/image_0/";
     // std::string right_path = "/home/cona/Downloads/dataset/data_odometry_gray/dataset/sequences/00/image_1/";
-    std::string left_path = "/home/cona/yhj/data/bk3_HD/left/";
-    std::string right_path = "/home/cona/yhj/data/bk3_HD/right/";
+    std::string left_path = "/home/cona/yhj/data/bk2_HD/left/";
+    std::string right_path = "/home/cona/yhj/data/bk2_HD/right/";
     std::vector<cv::Mat> gt_poses;
     int num_images = 0;
     CountImages(num_images, left_path);
@@ -26,54 +26,55 @@ int main(int argc, char **argv)
         query.left_cam.loadImage(left_path + cv::format("%06d.png", i+1));
         query.right_cam.loadImage(right_path + cv::format("%06d.png", i+1));
         
-        tracker.extractKeypoints(refer.left_cam);
+        // tracker.extractKeypoints(refer.left_cam);
+        tracker.extractKeypointsORB(refer.left_cam);
         tracker.trackKeypoints(refer, query);
         tracker.calc3DPoints(refer);
-        tracker.calcPose(refer, query);
-        
+        // tracker.calcPose(refer, query);
+        // std::cout << query.left_cam.cam_to_world_pose << std::endl;
         // refer.converDouble();
         // query.converDouble();
-
+        
         // if(i==0)
         //     cv::hconcat(refer.left_cam.rot_rodrigues.t(), refer.left_cam.translation.t(),refer.left_cam.ceres_cam_pose);
+        for(int j = 0; j < refer.left_cam.keypoints.size(); j++)
+        {
+            ceres::CostFunction* cost_function = new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 6, 3>(
+                                                new SnavelyReprojectionError(refer.left_cam.focal,
+                                                                            refer.left_cam.pp.x, refer.left_cam.pp.y,
+                                                                            refer.left_cam.keypoints[j].x,
+                                                                            refer.left_cam.keypoints[j].y));
+            problem.AddResidualBlock(cost_function, NULL,
+                                     &refer.left_cam.ceres_cam_pose[0],
+                                     &refer.landmarks[j*3]);
 
-        // for(int j = 0; j < refer.left_cam.keypoints.size(); j++)
-        // {
-        //     ceres::CostFunction* cost_function = new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 9, 3>(
-        //                                         new SnavelyReprojectionError(refer.left_cam.focal,
-        //                                                                     refer.left_cam.pp.x, refer.left_cam.pp.y,
-        //                                                                     refer.left_cam.keypoints[j].x, refer.left_cam.keypoints[j].y));
-        //     problem.AddResidualBlock(cost_function, NULL,
-        //                             &refer.left_cam.ceres_cam_pose[0],
-        //                             &refer.landmarks[j*3]);
-                      
-        //     problem.SetParameterBlockConstant(&refer.left_cam.ceres_cam_pose[0]);
+            ceres::CostFunction* cost_function2 = new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 6, 3>(
+                                                new SnavelyReprojectionError(query.left_cam.focal,
+                                                                            query.left_cam.pp.x, query.left_cam.pp.y,
+                                                                            query.left_cam.keypoints[j].x,
+                                                                            query.left_cam.keypoints[j].y));
+            problem.AddResidualBlock(cost_function2, NULL,
+                                     &query.left_cam.ceres_cam_pose[0],
+                                     &refer.landmarks[j*3]);
+            
+            problem.SetParameterBlockConstant(&refer.left_cam.ceres_cam_pose[0]);
+            // problem.SetParameterBlockConstant(&refer.right_cam.ceres_cam_pose[0]);
+            problem.SetParameterBlockConstant(&refer.landmarks[j*3]);
+        }
 
-        //     ceres::CostFunction* cost_function2 = new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 9, 3>(
-        //                                         new SnavelyReprojectionError(refer.right_cam.focal,
-        //                                                                     refer.right_cam.pp.x, refer.right_cam.pp.y,
-        //                                                                     refer.right_cam.keypoints[j].x, refer.right_cam.keypoints[j].y));
-        //     problem.AddResidualBlock(cost_function, NULL,
-        //                             &refer.right_cam.ceres_cam_pose[0],
-        //                             &refer.landmarks[j*3]);
+        ceres::Solver::Options options;
+        options.linear_solver_type = ceres::SPARSE_SCHUR;
+        options.minimizer_progress_to_stdout = true;
+        options.max_num_iterations = 100;
+        ceres::Solver::Summary summary;
+        ceres::Solve(options, &problem, &summary);
+        std::cout << summary.FullReport() << std::endl;
 
-        //     // ceres::CostFunction* cost_function2 = new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 9, 3>(
-        //     //                                     new SnavelyReprojectionError(query.left_cam.focal,
-        //     //                                                                 query.left_cam.pp.x, query.left_cam.pp.y,
-        //     //                                                                 query.left_cam.keypoints[j].x, query.left_cam.keypoints[j].y));
-        //     // problem.AddResidualBlock(cost_function2, NULL,
-        //     //                         &query.left_cam.ceres_cam_pose[0],
-        //     //                         &refer.landmarks[j*3]);
-        // }
+        refer.updatePoseAnd3DPoints();
+        query.updatePoseAnd3DPoints();
+        // std::cout << refer.left_cam.cam_to_world_pose << std::endl;
+        // std::cout << query.left_cam.cam_to_world_pose << std::endl;
         
-        // ceres::Solver::Options options;
-        // options.linear_solver_type = ceres::SPARSE_SCHUR;
-        // options.minimizer_progress_to_stdout = true;
-        // options.max_num_iterations = 100;
-        // ceres::Solver::Summary summary;
-        // ceres::Solve(options, &problem, &summary);
-
-        // std::cout << summary.FullReport() << std::endl;
         
         // //calculate error
         // double r_err, t_err;
