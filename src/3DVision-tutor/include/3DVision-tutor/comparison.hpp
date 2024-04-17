@@ -232,7 +232,7 @@ class Tracker
             // }
         }
         
-        void trackKyepointsWDescriptor(Node& refer, Node& query)
+        void trackKLTAndDescriptor(Node& refer, Node& query)
         {
             // refer right cam - keypoint -> descriptor matching 후 필요 없는 것들 erase
             // query left cam - keypoint
@@ -284,20 +284,73 @@ class Tracker
             {
                 if(!status0[i])
                 {
-                    refer.left_cam.keypoints.erase(refer.left_cam.keypoints.begin() + (i+j));
-                    refer.right_cam.keypoints.erase(refer.right_cam.keypoints.begin() + (i+j));
-                    query.left_cam.keypoints.erase(query.left_cam.keypoints.begin() + (i+j));
+                    refer.left_cam.keypoints.erase(refer.left_cam.keypoints.begin() + (i-j));
+                    refer.right_cam.keypoints.erase(refer.right_cam.keypoints.begin() + (i-j));
+                    query.left_cam.keypoints.erase(query.left_cam.keypoints.begin() + (i-j));
                     j++;
                 }
             }
 
-            // cv::Mat query_img = refer.left_cam.image.clone(), train_img = refer.right_cam.image.clone();
-            // cv::Mat output_img;
-            // cv::drawMatches(query_img, refer.left_cam.keypts,
-            //                 train_img, refer.right_cam.keypts, matches, output_img);
-            //                 std::cout << matches.size() << std::endl;
-            // cv::imshow("matches", output_img);
+            cv::Mat query_img = refer.left_cam.image.clone(), train_img = refer.right_cam.image.clone();
+            cv::Mat output_img;
+            cv::drawMatches(query_img, refer.left_cam.keypts,
+                            train_img, refer.right_cam.keypts, matches, output_img);
+                            std::cout << matches.size() << std::endl;
+            cv::imshow("matches", output_img);
+            cv::waitKey(0);
+        }
+        void trackOnlyDescriptor(Node& refer, Node& query)
+        {
+            cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce-Hamming");
+            std::vector<cv::DMatch> lr_match, good_lr_match, ll_match;
+            std::vector<cv::DMatch> total_lr, total_ll;
+            matcher->match(refer.left_cam.descriptors, refer.right_cam.descriptors, lr_match);
+            matcher->match(refer.left_cam.descriptors, query.left_cam.descriptors, ll_match);
+            
+            double min_dist = 10000, max_dist = 0;
+            for (int i = 0; i < refer.left_cam.descriptors.rows; i++) {
+                double dist = lr_match[i].distance;
+                if (dist < min_dist) min_dist = dist;
+                if (dist > max_dist) max_dist = dist;
+            }
+            for (int i = 0; i < refer.left_cam.descriptors.rows; i++) {
+                if (lr_match[i].distance <= std::max(2 * min_dist, 20.0)) {
+                    good_lr_match.push_back(lr_match[i]);
+                }
+            }
+
+            std::vector<cv::KeyPoint> refer_left, refer_right, query_left;
+            for(int i = 0; i < good_lr_match.size(); i++)
+            {
+                int lr_q_idx = good_lr_match[i].queryIdx; //left
+                int lr_t_idx = good_lr_match[i].trainIdx; //right
+                for(int j = 0; j < ll_match.size(); j++)
+                {
+                    int ll_q_idx = ll_match[j].queryIdx; // refer
+                    int ll_t_idx = ll_match[j].trainIdx; // query
+                    if(lr_q_idx == ll_q_idx && ll_match[j].distance < 20)
+                    {
+                        refer_left.push_back(refer.left_cam.keypts[ll_q_idx]);
+                        refer_right.push_back(refer.right_cam.keypts[lr_t_idx]);
+                        query_left.push_back(query.left_cam.keypts[ll_t_idx]);
+
+                        total_lr.push_back(good_lr_match[i]);
+                        total_ll.push_back(ll_match[j]);
+                        break;
+                    }
+                }
+            }
+            // cv::Mat lr_img, ll_img;
+            // cv::drawMatches(refer.left_cam.image, refer.left_cam.keypts, refer.right_cam.image, refer.right_cam.keypts,
+            //                 total_lr, lr_img);
+            // cv::drawMatches(refer.left_cam.image, refer.left_cam.keypts, query.left_cam.image, query.left_cam.keypts,
+            //                 total_ll, ll_img);
+            // cv::imshow("lr_img", lr_img);
+            // cv::imshow("ll_img", ll_img);
             // cv::waitKey(0);
+            cv::KeyPoint::convert(refer_left, refer.left_cam.keypoints, std::vector<int>());
+            cv::KeyPoint::convert(refer_right, refer.right_cam.keypoints, std::vector<int>());
+            cv::KeyPoint::convert(query_left, query.left_cam.keypoints, std::vector<int>());
         }
 
         void calc3DPoints(Node& node)
@@ -572,7 +625,8 @@ class Tracker
             }
             else 
             {
-            std::cout << "[WARNING] scale is very low or very high" << std::endl;
+                frame_pose = frame_pose * rigid_body_transformation;
+            std::cout << "[WARNING] scale is very low or very high: " << scale << std::endl;
             }
         }
 

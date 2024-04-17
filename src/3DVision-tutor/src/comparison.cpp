@@ -4,8 +4,8 @@ int main(int argc, char **argv)
 {
     // std::string left_path = "/home/cona/Downloads/dataset/data_odometry_gray/dataset/sequences/00/image_0/";
     // std::string right_path = "/home/cona/Downloads/dataset/data_odometry_gray/dataset/sequences/00/image_1/";
-    std::string left_path = "/home/cona/yhj/data/bk3_HD/left/";
-    std::string right_path = "/home/cona/yhj/data/bk3_HD/right/";
+    std::string left_path = "/home/cona/yhj/data/bk1_10cm/left/";
+    std::string right_path = "/home/cona/yhj/data/bk1_10cm/right/";
     std::vector<cv::Mat> gt_poses;
     int num_images = 0;
     CountImages(num_images, left_path);
@@ -15,23 +15,26 @@ int main(int argc, char **argv)
 
     Tracker tracker;
     Visualizer visualizer;
-
-    for(int i = 0; i < num_images-1; i++)
+    int gap = 1;
+    
+    for(int i = 0; i < num_images-gap; i++)
     {
         Node refer, query;
 
         refer.left_cam.loadImage(left_path + cv::format("%06d.png", i));
         refer.right_cam.loadImage(right_path + cv::format("%06d.png", i));
-        query.left_cam.loadImage(left_path + cv::format("%06d.png", i+1));
-        query.right_cam.loadImage(right_path + cv::format("%06d.png", i+1));
+        query.left_cam.loadImage(left_path + cv::format("%06d.png", i+gap));
+        query.right_cam.loadImage(right_path + cv::format("%06d.png", i+gap));
         
         // tracker.extractKeypointsFAST(refer.left_cam); //FAST
         tracker.extractKeypointsORB(refer.left_cam); //ORB
         tracker.extractKeypointsORB(refer.right_cam); //ORB
+        // tracker.extractKeypointsORB(query.left_cam); //ORB, trackOnlyDescriptor
         // tracker.extractKeypointsStella(refer.left_cam); //Stella
         // tracker.extractKeypointsStella(refer.right_cam); //Stella
         
-        tracker.trackKyepointsWDescriptor(refer, query);
+        // tracker.trackOnlyDescriptor(refer, query);
+        tracker.trackKLTAndDescriptor(refer, query);
         // tracker.trackKeypointsCircular(refer, query);
         
         tracker.calc3DPoints(refer);
